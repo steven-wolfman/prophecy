@@ -1,0 +1,14 @@
+<!--
+Popup.htm
+Copyright © 1998-2007 Scott Nesin, all rights reserved.
+-->
+<script language="javascript">
+function body_onload()
+{
+   var x=document.body.scrollWidth-document.body.offsetWidth;
+   var y=document.body.scrollHeight-document.body.offsetHeight+8;
+   if (x>0 || y>0)
+      window.resizeBy(x,y);
+}
+</script>
+<script language="javascript">document.write(eval("window.opener."+unescape(window.location.search.substr(1))));</script>
