@@ -2246,7 +2246,14 @@ GamesByEmail.TutorialGame.prototype={
    },
    getTutorialSteps:function()
    {
-      return [{method:"appendStepDownloadHtml",            needToDoTest:new Function("return (window.location.protocol!=\"file:\");")}
+       // WOLF (2015/10/12): trying to test w/http protocol via localhost b/c otherwise later file loading fails; so, changed the needToDoTest for appendStepDownloadHtml to "return false;" from "return (window.location.protocol!=\"file:\");"
+       // WOLF: With that change, I can run a web server on my own machine and use http to localhost to access the tutorial.
+       // WOLF: Specifically: Foundation.$readTextFile generates this error message on trying to test whether code compiles in step 4 (save the board image information)
+       // WOLF: XMLHttpRequest cannot load file:///C:/Users/Steve/Documents/games/GamesByEmail/Games/TicTacToe/Game.js. Cross origin requests are only supported for protocol schemes: http, data, chrome, chrome-extension, https, chrome-extension-resource.
+       // WOLF: Foundation.js:945
+       // WOLF:
+       // WOLF: The backup to this in a catch block in that function is to use the startDownload method that seems to be IE-specific (based on a few web searches).
+      return [{method:"appendStepDownloadHtml",            needToDoTest:new Function("return false;")} 
              ,{method:"appendCreateGameFolderAndFilesHtml",needToDoTest:new Function("return (this.constructor==GamesByEmail.TutorialGame);")}
              ,{method:"appendCreateBoardImageHtml",        needToDoTest:new Function("return (!this.checkForImage(\"Board\"));")}
              ,{method:"appendCreateBoardResourceHtml",     needToDoTest:new Function("return (this.resource(\"board\")==null);")}
