@@ -1,0 +1,8 @@
+* First pass
+Simple ring-shaped board with 20 spaces and k players. A player on
+their turn can move to a neighboring space. Goal is to move to a
+designated target space.
+
+Simplifications:
++ Make the board 20 spaces around the edge of a 6x6 grid, leaving the interior empty. No need in that case to figure out how to do non-grid boards. *BUT*, this will eventually be important; so, worth figuring out earlier rather than later.
++ Allow exactly two players only.
