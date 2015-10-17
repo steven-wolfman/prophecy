@@ -1,0 +1,20 @@
+Civilization    # Village; at top in image
+Mountain
+Civilization    # Magic Tower
+Forest
+Plains
+Forest
+Civilization    # Monastery
+Civilization    # City
+Plains
+Mountain
+Civilization    # Fortress
+Plains
+Special         # Magic Wilderness
+Forest
+Civilization    # Forest Camp
+Mountain
+Plains
+Forest
+Civilization    # Thieves' Guild
+Plains
