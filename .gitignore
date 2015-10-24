@@ -1,3 +1,5 @@
 *.2
 *.bak
 *~
+Prophecy/Boards/Default/Thumbs.db
+*.txt#

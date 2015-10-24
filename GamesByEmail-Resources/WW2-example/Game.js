@@ -3260,6 +3260,7 @@ GamesByEmail.WW2Game.prototype={
       html+="</table>";
       return html;
    },
+    /* OF INTEREST!!! */
    trackOnMouseMove:function(point,arg,event)
    {
       if (this.maybeEndTempHide(event))

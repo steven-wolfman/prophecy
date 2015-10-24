@@ -1,0 +1,5 @@
++ How do we determine what the options in the resource pack are and how they are handled? (E.g., the very complex board resource!)
+  + What is a GAME_TYPE? How do we find it?
++ Where is the unpreprocessed source for WW2 and other examples? (Ask Scott Nesin?)
++ What are the possible resourcePack values?
+  + See importData routines in GamesByEmail.js

@@ -194,3 +194,18 @@
 
 (define TERRITORIES
   (map make-terr SPACES TERRITORY-TYPES))
+
+(define BOARD
+  (foldr show-territory
+         empty-image
+         TERRITORIES))
+
+(define COORDINATES
+  (foldr (λ (s1 s2) (string-append s1 "\n" s2))
+         ""
+         (map (λ (segment)
+                (foldr (λ (s1 s2) (string-append s1 " " s2))
+                       ""
+                       (map (λ (pt) (string-append "(" (number->string (posn-x pt)) "," (number->string (posn-y pt)) ")"))
+                            segment)))
+              (map terr-points TERRITORIES))))
