@@ -2,6 +2,20 @@
 // move around the board following "by foot" rules, with the goal of
 // reaching the magic wilderness. Presently, I can at least display
 // two piece images in the squares where they belong :)
+
+// WOLF (2015/10/24): Need to do some design work and decide what the
+// major components are. Players are obvious (need to possess
+// abilities, items, have willpower/strength and magic/health,
+// etc.). A player presumably also has a location. That location
+// should probably be a Territory, and each territory should probably
+// have an index.
+
+// Current goal: clicking on a territory moves the current piece there
+// if and only if it's a legal move.
+//
+// Next steps: Highlight every territory that's a legal move (so that
+// clicking other things is obviously a non-action; in that case, no
+// need for an error message there).
 Foundation.createClass
 (
     "GamesByEmail.ProphecyPiece",
@@ -165,28 +179,13 @@ Foundation.createClass
     {
 	// This is our class contructor.
 	this.pieces = new GamesByEmail.ProphecyPieces();
+	this.winning_location = 13; // Magic Wilderness
     },
     {
 	// This will hold our methods and properties.
 	checkForWin:function(board,color)
 	{
-	    return false; // TODO
-	    /*
-	    var value=(color==0 ? 'X' : 'O');
-	    // Naomi's super-secret O victory condition.
-	    //if (value == 'O' && 
-	    //    (this.valueFromXYBoard(0,0,board)=='O' ||
-	    //    this.valueFromXYBoard(2,2,board)=='O'))
-	    //    return true;
-	    return (this.checkThreeSpaces(board,value,0,0,1,0,2,0) || // Check horizontals...
-		    this.checkThreeSpaces(board,value,0,1,1,1,2,1) ||
-		    this.checkThreeSpaces(board,value,0,2,1,2,2,2) ||
-		    this.checkThreeSpaces(board,value,0,0,0,1,0,2) || // Check verticals...
-		    this.checkThreeSpaces(board,value,1,2,1,1,1,0) ||
-		    this.checkThreeSpaces(board,value,2,0,2,1,2,2) ||
-		    this.checkThreeSpaces(board,value,0,0,1,1,2,2) || // Check diagonals...
-		    this.checkThreeSpaces(board,value,0,2,1,1,2,0));
-		    */
+	    return this.pieces[color].location === this.winning_location;
 	},
 	sendMove:function()
 	{
@@ -390,7 +389,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[19,1]
 		},
 		{ // 1
 		    title:"1",
@@ -398,7 +397,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[0,2]
 		},
 		{ // 2
 		    title:"2",
@@ -406,7 +405,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[1,3]
 		},
 		{ // 3
 		    title:"3",
@@ -414,7 +413,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[2,4]
 		},
 		{ // 4
 		    title:"4",
@@ -422,7 +421,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[3,5]
 		},
 		{ // 5
 		    title:"5",
@@ -430,7 +429,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[4,6]
 		},
 		{ // 6
 		    title:"6",
@@ -438,7 +437,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[5,7]
 		},
 		{ // 7
 		    title:"7",
@@ -446,7 +445,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[6,8]
 		},
 		{ // 8
 		    title:"8",
@@ -454,7 +453,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[7,9]
 		},
 		{ // 9
 		    title:"9",
@@ -462,7 +461,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[8,10]
 		},
 		{ // 10
 		    title:"10",
@@ -470,7 +469,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[9,11]
 		},
 		{ // 11
 		    title:"11",
@@ -478,7 +477,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[10,12]
 		},
 		{ // 12
 		    title:"12",
@@ -486,7 +485,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[11,13]
 		},
 		{ // 13
 		    title:"13",
@@ -494,7 +493,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[12,14]
 		},
 		{ // 14
 		    title:"14",
@@ -502,7 +501,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[13,15]
 		},
 		{ // 15
 		    title:"15",
@@ -510,7 +509,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[14,16]
 		},
 		{ // 16
 		    title:"16",
@@ -518,7 +517,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[15,17]
 		},
 		{ // 17
 		    title:"17",
@@ -526,7 +525,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[16,18]
 		},
 		{ // 18
 		    title:"18",
@@ -534,7 +533,7 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
+		    adjacentIndices:[17,19]
 		},
 		{ // 19
 		    title:"19",
@@ -542,8 +541,8 @@ Foundation.createClass
 		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
 		    //hiliteSize:new Foundation.Point(145,233),  
 		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[]
-		}
+		    adjacentIndices:[18,0]
+		},
 	    ],
 	    rules:Foundation.readTextFile("Rules.htm")
 	}
