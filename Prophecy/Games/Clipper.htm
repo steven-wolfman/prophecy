@@ -1,0 +1,34 @@
+<script src="../Foundation.js"></script>
+<script src="../Foundation.Controls.Clipper.js"></script>
+<html>
+<body onscroll="body_onscroll()">
+<input type=file name="FileName" id="FileName" size=50 value="" onchange="setImage();">
+<script>
+function body_onscroll()
+{
+   var e=document.getElementById("Rectangle");
+   e.style.top=100+document.body.scrollTop;
+}
+function setImage()
+{
+   clipper.setValue(document.getElementById("FileName").value);
+}
+function clipperOnResize(clipper)
+{
+   var e=document.getElementById("Rectangle");
+   e.style.left=20+clipper.getMasterContainer().offsetWidth;
+}
+function clipperOnChange(clipper)
+{
+   var e=document.getElementById("Rectangle");
+   e.value="new Foundation.Rectangle("+clipper.left+","+clipper.top+","+clipper.width+","+clipper.height+")";
+   e.select();
+}
+var clipper=new Foundation.Controls.Clipper();
+clipper.onChange=clipperOnChange;
+clipper.onResize=clipperOnResize;
+document.write(clipper.getHtml());
+</script>
+<p><input type=text name="Rectangle" id="Rectangle" size=50 value="" onfocus="this.select();" style="position:absolute;left:210;top:100">
+</body>
+</html>
