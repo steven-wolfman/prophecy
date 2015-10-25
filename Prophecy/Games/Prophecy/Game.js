@@ -176,7 +176,7 @@ Foundation.createClass
     {
 	// This is our class contructor.
 	this.pieces = new GamesByEmail.ProphecyPieces();
-	this.winning_location = 12; // Magic Wilderness
+	this.winningLocation = 12; // Magic Wilderness
     },
     {
 	// This will hold our methods and properties.
@@ -184,7 +184,7 @@ Foundation.createClass
 	{
 	    if (piece === undefined)
 		piece = this.getCurrentPiece();
-	    return piece.location === this.winning_location;
+	    return piece.location === this.winningLocation;
 	},
 	sendMove:function()
 	{
@@ -321,8 +321,11 @@ Foundation.createClass
 	// port or magical forest movement??
 	areTerritoriesAdjacent:function(from, to)
 	{
-	    // TODO!!!
-	    return true;
+	    var adjList = from.adjacent;
+	    for (var i = 0; i < adjList.length; i++)
+		if (adjList[i].index === to.index)
+		    return true;
+	    return false;
 	},
 
 	// the resourcePack is a collection of information
