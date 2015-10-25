@@ -4,3 +4,5 @@ Tinkering with GamesByEmail with the idea of producing a Prophecy clone for e-ma
 Here's a link to the Prophecy BGG page: https://boardgamegeek.com/boardgame/8095/prophecy
 
 Here's a link to the Dev section of GamesByEmail: http://gamesbyemail.com/Developers
+
+I'll try to keep the live current version of the game at http://steven-wolfman.github.io/prophecy.
