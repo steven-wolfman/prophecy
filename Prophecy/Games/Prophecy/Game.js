@@ -65,11 +65,7 @@ Foundation.createClass
 	getString:function()
 	{
 	    // Produce the serialization of the pieces.
-	    var string = "";
-	    var first = true;
-	    for (var i = 0; i < this.length; ++i) {
-		string += (first ? "" : "|") + this[i].getString()
-	    }
+	    var string = this.owner + "," + this.location;
 	    return string;
 	},
 	setString:function(str)
@@ -138,8 +134,9 @@ Foundation.createClass
 	    // Produce the serialization of the pieces.
 	    var string = "";
 	    var first = true;
-	    for (var i = 0; i < this.length; ++i) {
+	    for (var i = 0; i < this.length; i++) {
 		string += (first ? "" : "|") + this[i].getString()
+		first = false;
 	    }
 	    return string;
 	},
@@ -179,13 +176,15 @@ Foundation.createClass
     {
 	// This is our class contructor.
 	this.pieces = new GamesByEmail.ProphecyPieces();
-	this.winning_location = 13; // Magic Wilderness
+	this.winning_location = 12; // Magic Wilderness
     },
     {
 	// This will hold our methods and properties.
-	checkForWin:function(board,color)
+	checkForWin:function(piece)
 	{
-	    return this.pieces[color].location === this.winning_location;
+	    if (piece === undefined)
+		piece = this.getCurrentPiece();
+	    return piece.location === this.winning_location;
 	},
 	sendMove:function()
 	{
@@ -195,116 +194,75 @@ Foundation.createClass
 	    // numbers for the pieces that are there.  I'll want a
 	    // "getString/setString" for the board and then for each
 	    // component of the board, working from WW2's style.
-	    var board=this.pieces.getValue();
-	    this.info.board=board;
-	    this.info.hiliteIndex = this.lastHiliteIndex === undefined ? "" : this.lastHiliteIndex.toString();
+	    this.info.board = this.getString();
 	    var opponent=this.player.team.nextTeam();
-	    if (this.checkForWin(board,this.player.team.color))
+	    if (this.checkForWin())
 		this.setEnded(this.player.team);
 	    else
 	    {
-		if (this.checkForDraw(board))
-		{
-		    // Our board must be full, the game ended in a draw.
-		    this.setEnded();
-		    this.status.draw=true;
-		    this.status.stalemate=true;
-		    // Teams tie.
-		    this.player.team.status.drew=true;
-		    opponent.status.drew=true;
-		    // Notify opponent game ended with draw.
-		    opponent.notify.lost=true;
-		    opponent.notify.won=true;
-		}
-		else
-		    opponent.setExclusiveTurn();
+		opponent.setExclusiveTurn();
 	    }
 	    return Super.sendMove();
 	},
-	isMoveLegal:function(toPoint,boardValue)
+	territoryAtPoint:function(point)
 	{
-	    // A legal move for Tic-Tac-Toe is any square where there is no piece.
-	    // First, get the value index for the board point (square) we are testing.
-	    var valueIndex=this.valueIndexFromBoardPoint(toPoint);
-	    // Then return true if the value at that index is a space (and the move legal), or false if not.
-	    return (boardValue.charAt(valueIndex)==' ');
+	    return this.territories.findAtPoint(point);
 	},
-	checkMove:function(toPoint)
+	getCurrentPiece:function()
 	{
-	    // Get the board state value and pass it to isMoveLegal.
-	    return this.isMoveLegal(toPoint,this.pieces.getValue());
+	    var playerIndex = this.player.team.color;
+	    return this.pieces[playerIndex];
+	},
+	getCurrentTerritory:function(piece)
+	{
+	    if (piece === undefined)
+		piece = this.getCurrentPiece();
+	    if (piece.location >= 0)
+		return this.territories[piece.location];
+	    else
+		return null;
 	},
 	mouseUp:function(screenPoint)
 	{
-	    var boardPoint=this.boardPointFromScreenPoint(screenPoint);
-	    var oldHiliteIndex = this.lastHiliteIndex;
 	    // First, undo a move if we have already made one.
 	    if (this.madeMove)
 		this.undo();
-	    if (oldHiliteIndex === this.valueIndexFromBoardPoint(boardPoint))
-	    {
-		// Cancel the move since we clicked on the same spot previously moved to.
-		return;
-	    }
 
-	    // Then get the new piece.
-	    var piece=this.pieces.getNewPiece();
-	    // Next, get the board point from the screen point.
-	    // Test to see if this is the same location as before.
-	    
-	    // Now test to see if the move is legal. Move to the board point if it is.
-	    if (this.checkMove(boardPoint))
+	    var toTerritory=this.territoryAtPoint(screenPoint);
+	    var piece=this.getCurrentPiece();
+	    var fromTerritory=this.getCurrentTerritory(piece);
+	    if (toTerritory && fromTerritory)
 	    {
-		piece.setValue(this.player.team.color==0 ? 'X' : 'O');
-		piece.move(boardPoint,false);
-		// Set the madeMove flag to true...
-		this.madeMove=true;
-		// ...and that the move is ready to send...
-		this.readyToSend=true;
-		
-		// Update the hiliteIndex for the next turn.
-		this.lastHiliteIndex = this.valueIndexFromBoardPoint(boardPoint);
-		
-		// ...then update the game controls.
-		this.update();
+		if (GamesByEmail.ProphecyGame.areTerritoriesAdjacent(fromTerritory, toTerritory))
+		{
+		    piece.location = toTerritory.index;
+		    this.madeMove = true;
+		    this.readyToSend = true;
+		    this.update();
+		}
+		else
+		{
+		    // TODO: Handle the case where the territories
+		    // exist but are not adjacent.
+		}
 	    }
-	},
-	mouseOut:function(screenPoint)
-	{
-	    // First get the new piece.
-	    var piece=this.pieces.getNewPiece();
-	    // Reset the piece.
-	    piece.reset();
-	},
-	mouseMove:function(screenPoint)
-	{
-	    // First get the new piece we are adding.
-	    var piece=this.pieces.getNewPiece();
-	    // Set it as an X or O, depending on the 'color' of the team we are playing.
-	    piece.setValue(this.player.team.color==0 ? 'X' : 'O');
-	    // First, get the board point from the screen point.
-	    var boardPoint=this.boardPointFromScreenPoint(screenPoint);
-	    this.debug(); // Clear the debug window
-	    this.debug(screenPoint);
-	    // You can also call the global debug method when testing.
-	    debug(boardPoint);
-	    // Now test to see if the move is legal. Snap to the board point if it is, else center on the cursor.
-	    if (this.checkMove(boardPoint))
-		piece.snap(boardPoint);
 	    else
-		piece.center(screenPoint);
+	    {
+		// TODO: Handle case where there either is no to
+		// territory or worse no from territory (i.e., no
+		// location for the current piece).
+	    }
 	},
 	itsYourTurnHtml:function(resourceName)
 	{
 	    // Make sure to only hook movement if we have not placed a piece yet.
 	    if (!this.madeMove)
 	    {
-		this.onMouseMove="mouseMove"; // Have our mouseMove method called when the mouse is over the board.
-		this.onMouseOut="mouseOut"; // Have our mouseOut method called when the mouse leaves the board.
+		// Nothing to do here either!
 	    }
 	    else
 	    {
-		//this.onMouseMove="mouseMove"; // follow the mouse even without undoing the move
+		// Nothing to do here.
 	    }
 	    this.onLeftMouseUp="mouseUp";
 	    return Super.itsYourTurnHtml(resourceName); // Call the parent class' itsYourTurnHtml method.
@@ -356,6 +314,16 @@ Foundation.createClass
     },
     {
 	// This will hold our static methods and properties.
+	
+	// TODO: build into territories or territory, probably also
+	// for indices and not just territories. Also, probably extend
+	// to support querying different "flavors" of adjacency, e.g.,
+	// port or magical forest movement??
+	areTerritoriesAdjacent:function(from, to)
+	{
+	    // TODO!!!
+	    return true;
+	},
 
 	// the resourcePack is a collection of information
 	// used throughout the class.
