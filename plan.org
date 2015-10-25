@@ -15,7 +15,7 @@ Finished a version with a board and simple movement.
 + A player has a set of transport modes
   + Player itself has built-in transport modes: walk, ride a horse, take ship
   + A transport mode:
-    + Given a destination, has a cost
+    + Given a source and destination, has a cost
       + Most transport modes have a single real cost. (Even the magic
         carpet could be done as two transport modes, each with a
         single cost. In fact, of course, the carpet would be *three*
@@ -56,11 +56,31 @@ Finished a version with a board and simple movement.
       + Water?
   + A cost:
     + Can check whether a player can pay it.
+      + *WARNING*: There's some subtleties here, like the "one spell
+        per turn costs one mana less". Either we need to make the
+        player trigger this themselves (in which case we can check it
+        against anything) or we need to assume its use (in which case,
+        e.g., aggregates become a bit tricky). The latter is probably
+        fine, as long as we can handle the aggregate case and as long
+        as the user can choose to pay it a different way. However, the
+        former would be easier, and so I'm going to suggest that
+        way. (That also handles cases like using the scroll that lets
+        you exchange gold for XP or vice versa, which we don't want to
+        bother auto-detecting!)
+	
+	If they *do* use the ability, then we're back to having to
+        handle aggregates, however.
     + Can be paid (i.e., a player can pay a cost, in which case the
       cost applies itself to the player).
     + Can display itself
     + Can be an aggregate (for now, only added costs)
     + Can be positive, negative, or mixed. (I.e., gains are also
       costs. E.g., consider the double-move spell + blacksmithing +
-      horseback riding. That would be three costs in aggregate: 1 magic, 
+      horseback riding. That would be three costs in aggregate: 1 magic,
+    + Can check whether it dominates another cost (handy for avoiding
+      listing and defaulting to a top cost when clicking on a
+      territory, e.g., if you have free forest transport, then the
+      two-space gap to another forest in one part of the board
+      dominates horseriding while if you have the ranger's boots, then
+      walking two spaces dominates riding).
 
