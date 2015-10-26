@@ -1,4 +1,4 @@
-* First pass
+* DONE First pass
 Simple ring-shaped board with 20 spaces and k players. A player on
 their turn can move to a neighboring space. Goal is to move to a
 designated target space.
@@ -6,3 +6,107 @@ designated target space.
 Simplifications:
 + Make the board 20 spaces around the edge of a 6x6 grid, leaving the interior empty. No need in that case to figure out how to do non-grid boards. *BUT*, this will eventually be important; so, worth figuring out earlier rather than later.
 + Allow exactly two players only.
+
+Finished a version with a board and simple movement.
+* TODO Second pass: movement types
++ Board shows port and magic portal locations (very simply!)
+  + A territory "knows" whether it is a port/portal location
+  + A territory displays itself including its port symbol and portal symbol
++ A player has a set of transport modes
+  + Player itself has built-in transport modes: walk, ride a horse, take ship
+  + A transport mode:
+    + Given a source and destination, has a cost
+      + Most transport modes have a single real cost. (Even the magic
+        carpet could be done as two transport modes, each with a
+        single cost. In fact, of course, the carpet would be *three*
+        transport modes, since it can also move to the Dragon Realm
+        for free.) For all locations they cannot travel to, they
+        simply give back no cost (null, presumably). (Note: could
+        instead provide infinite cost in those cases.)
+      + Note that this means fetching the cost handles adjacency.
+      + Note that this means the spell to move twice can be handled by
+        adding costs. (Find the costs to move to all spaces on the
+        board, then from each space on the board with finite cost,
+        find the cost to move to the target space. Add them.)
+    + Can display itself (which includes displaying its cost?)
+    + Can provide its source(s). (E.g., the spell to move twice used
+      with horseback riding and blacksmithing would yield that spell
+      ability, and the blacksmithing ability. The magic carpet would
+      just yield the carpet item.)
+      + Built-in transport modes have no source.
+    + Can be an "instead-of-movement" ability.
+    + Built-in transport modes include:
+      + Stand (free, only for current space)
+      + Walk
+      + Ride
+      + Ship
+      + "Go up" (astral plane)
+    + Transport modes will change in the realms, of course!
+      + Dragon built-ins (plus things like the one that lets you sneak
+        around obstacles?):
+	+ Stand is still available
+	+ Drop?
+	+ Advance
+	  + Can be a two-step advance if the first step is only good
+            cards; probaly best to do this as a separate transport
+            mode
+	  + Probably will need to futz with the graph here, as there's
+            a difference between standing on a space, challenging the
+            next space, and being in the next space.
+      + Water?
+  + A cost can..
+    + Check whether a player can pay it.
+      + *WARNING*: There's some subtleties here, like the "one spell
+        per turn costs one mana less". Either we need to make the
+        player trigger this themselves (in which case we can check it
+        against anything) or we need to assume its use (in which case,
+        e.g., aggregates become a bit tricky). The latter is probably
+        fine, as long as we can handle the aggregate case and as long
+        as the user can choose to pay it a different way. However, the
+        former would be easier, and so I'm going to suggest that
+        way. (That also handles cases like using the scroll that lets
+        you exchange gold for XP or vice versa, which we don't want to
+        bother auto-detecting!)
+	
+	If they *do* use the ability, then we're back to having to
+        handle aggregates, however.
+    + Be paid (i.e., a player can pay a cost, in which case the
+      cost applies itself to the player).
+    + Display itself
+    + Be an aggregate (for now, only added costs)
+    + Be positive, negative, or mixed. (I.e., gains are also
+      costs. E.g., consider the double-move spell + blacksmithing +
+      horseback riding. That would be three costs in aggregate: 1 magic,
+    + Check whether it dominates another cost (handy for avoiding
+      listing and defaulting to a top cost when clicking on a
+      territory, e.g., if you have free forest transport, then the
+      two-space gap to another forest in one part of the board
+      dominates horseriding while if you have the ranger's boots, then
+      walking two spaces dominates riding).
+
+
+Cost design:
++ canPay(player,allAssist)
++ pay(player,allAssist)
++ addSummaryHtml(htmlBuilder)
++ addFullHtml(htmlBuilder)
++ isPositive()  // Note: all four possible combos
++ isNegative()  // are reasonable (both true: mixed; both false: free)
++ dominates(cost)
+
+
+Player design:
++ checkpoint()        // produces an object which can be passed to..
++ restore(checkpoint) // here to roll back the player's state
++ addXp(amount)
++ addGold(amount)
++ addMagic(amount)
++ addHealth(amount)
++ addWillpower(amount)
++ addStrength(amount)
++ getXp(allAssist)
++ getGold(allAssist)
++ getMagic(allAssist)
++ getHealth(allAssist)
++ getWillpower(allAssist)
++ getStrength(allAssist)
