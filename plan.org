@@ -54,8 +54,8 @@ Finished a version with a board and simple movement.
             a difference between standing on a space, challenging the
             next space, and being in the next space.
       + Water?
-  + A cost:
-    + Can check whether a player can pay it.
+  + A cost can..
+    + Check whether a player can pay it.
       + *WARNING*: There's some subtleties here, like the "one spell
         per turn costs one mana less". Either we need to make the
         player trigger this themselves (in which case we can check it
@@ -70,17 +70,43 @@ Finished a version with a board and simple movement.
 	
 	If they *do* use the ability, then we're back to having to
         handle aggregates, however.
-    + Can be paid (i.e., a player can pay a cost, in which case the
+    + Be paid (i.e., a player can pay a cost, in which case the
       cost applies itself to the player).
-    + Can display itself
-    + Can be an aggregate (for now, only added costs)
-    + Can be positive, negative, or mixed. (I.e., gains are also
+    + Display itself
+    + Be an aggregate (for now, only added costs)
+    + Be positive, negative, or mixed. (I.e., gains are also
       costs. E.g., consider the double-move spell + blacksmithing +
       horseback riding. That would be three costs in aggregate: 1 magic,
-    + Can check whether it dominates another cost (handy for avoiding
+    + Check whether it dominates another cost (handy for avoiding
       listing and defaulting to a top cost when clicking on a
       territory, e.g., if you have free forest transport, then the
       two-space gap to another forest in one part of the board
       dominates horseriding while if you have the ranger's boots, then
       walking two spaces dominates riding).
 
+
+Cost design:
++ canPay(player,allAssist)
++ pay(player,allAssist)
++ addSummaryHtml(htmlBuilder)
++ addFullHtml(htmlBuilder)
++ isPositive()  // Note: all four possible combos
++ isNegative()  // are reasonable (both true: mixed; both false: free)
++ dominates(cost)
+
+
+Player design:
++ checkpoint()        // produces an object which can be passed to..
++ restore(checkpoint) // here to roll back the player's state
++ addXp(amount)
++ addGold(amount)
++ addMagic(amount)
++ addHealth(amount)
++ addWillpower(amount)
++ addStrength(amount)
++ getXp(allAssist)
++ getGold(allAssist)
++ getMagic(allAssist)
++ getHealth(allAssist)
++ getWillpower(allAssist)
++ getStrength(allAssist)
