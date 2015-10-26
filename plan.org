@@ -86,27 +86,117 @@ Finished a version with a board and simple movement.
 
 
 Cost design:
-+ canPay(player,allAssist)
-+ pay(player,allAssist)
++ canPay(character)
++ pay(character)
 + addSummaryHtml(htmlBuilder)
 + addFullHtml(htmlBuilder)
-+ isPositive()  // Note: all four possible combos
-+ isNegative()  // are reasonable (both true: mixed; both false: free)
++ isPositive()  // Note: all four possible combos are reasonable,
++ isNegative()  //       both true: mixed; both false: free
++ isComparable() // If it is, then it can be compared resource-by-resource; it should not be considered to dominate or be dominated by any resource
 + dominates(cost)
++ getMin(resource): the minimum cost in that resource (zero if not listed)
++ getMax(resource): the maximum cost in that resource (zero if not listed; can be infinite??)
 
+SimpleCost design:
++ constructed with two lists of resource amounts: mandatory and upto
+  + mandatory: if it's not possible to "pay" exactly this amount, then the cost cannot be paid
+  + upto: however much it is possible to "pay" up to hard limits will
+    be paid, but this has no impact on whether a character "canPay"
+  + It is *undefined* what happens if a resource has opposite signs
+    for mandatory/upto, at least for the moment.
+  + eventually, should probably be moved into a separate resource
+    file; certainly should eventually be set up for i18n
+  + TODO: think about infinities in here (could be very useful for
+    "lose all" or "gain all")
++ implementation
+  + canPay: for each mandatory resource included
+    + checks that resource level + amount is between hard min and max for that resource
+  + getMin(resource): min(mandatory, upto+mandatory); zero if not listed
+  + getMax(resource): max(mandatory, upto+mandatory); zero if not listed
+  + pay: checks canPay and then proceeds (NOT thread-safe!); just loops through the resources adding them
+  + addSummaryHtml:
+    + for every resource that is mandatory and positive (+k) but not upto
+      + produce k negative symbols for resource cost
+    + for every resource that is mandatory and negative (-k) but not upto
+      + produce k symbols for resource gain
+    + for every positive upto resource
+      + produce symbols for any mandatory element
+      + produce a "..."??
+    + for every negative upto resource
+      + produce symbols for any mandatory element
+      + produce a "..."??
+  + addFullHtml:
+    + same as above for now
+    + eventually, use words instead? use "2" or "3" for numbers rather
+      than unary (symbols)? produce ranges for mandatory and upto?
+  + isPositive: true iff any element (mandatory or upto) is positive
+  + isNegative: true iff any element (mandatory or upto) is negative
+  + isComparable: true
+  + dominates(cost): false if either one is incomparable; else, true if for each resource in both:
+    + this item's maximum cost (least of mandatory and mandatory+upto) is <= the other item's minimum cost
 
-Player design:
-+ checkpoint()        // produces an object which can be passed to..
-+ restore(checkpoint) // here to roll back the player's state
-+ addXp(amount)
-+ addGold(amount)
-+ addMagic(amount)
-+ addHealth(amount)
-+ addWillpower(amount)
-+ addStrength(amount)
-+ getXp(allAssist)
-+ getGold(allAssist)
-+ getMagic(allAssist)
-+ getHealth(allAssist)
-+ getWillpower(allAssist)
-+ getStrength(allAssist)
+DEFER: AggregateCost design:
++ constructed with a list of costs (ordered!)
++ getCosts: gives back the constituent costs
++ implementation
+  + canPay: deep copy the character
+    + for each included cost:
+      + if copied character canPay
+	+ then: copied character pays
+	+ else: return false
+    + return true if it passes all tests
+  + getMin(resource): sum of minima; zero if not listed
+  + getMax(resource): sum of maxima; zero if not listed
+  + pay: checks canPay and then proceeds (NOT thread-safe!); see canPay above except w/no deep copy!
+  + addSummaryHtml:
+    + for each included cost
+      + add summaryhtml
+  + addFullHtml:
+    + for each included cost
+      + add full html
+  + isPositive: true iff any element is positive
+  + isNegative: true iff any element is negative
+  + isComparable: and of all subcosts
+  + dominates(cost): false if either one is incomparable; else, true if for each resource in both:
+    + this item's maximum cost (least of mandatory and mandatory+upto) is <= the other item's minimum cost
+
+Resource design:
++ getName
+  + i18n
+  + move to resource area??
++ addSymbolHtml
++ addNegativeSymbolHtml
++ addSingularTextHtml
++ addPluralTextHtml
++ getPriority
+  + Used to decide what order to list resources; just a number
++ static list of the basic ones:
+  + XP
+  + GOLD
+  + MAGIC
+  + HEALTH
+  + WILLPOWER
+  + STRENGTH
+
+Character design:
++ constructor with initial levels; all other levels assumed 0 initially
++ addResource(type, amount) // types: xp, gold, magic, health, willpower, strength (and more, later!)
++ getResource(type)
++ getHardResourceMax(type)
++ getSoftResourceMax(type) // soft limits: applied at end of turn
++ getHardResourceMin(type)
++ getSoftResourceMin(type) // soft limits: applied at end of turn
++ addTransportMode(mode)
++ removeTransportMode(mode)
++ hasTransportMode(mode)
++ countTransportModes(name)     // by textual name (which may be repeated, e.g., "Magic Carpet")
++ removeAllTransportModes(name) // by textual name
++ getTransportModes()
+
+NOTE: Could the bank be a separate "resource"? banked gold, with a
+hard limit of 3. Later, we'll need much more cleverness here.
+
+NOTE: A character is data, i.e., deep-copyable. So, no referring back
+to the game itself inside character (for example!). This will make
+simulation and rollback easy. (It will also enable the doppleganger
+card.)
