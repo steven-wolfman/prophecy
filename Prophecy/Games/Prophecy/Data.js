@@ -5,7 +5,8 @@
 //
 // EXCEPTION: I'll need to make event handlers. These should NOT be
 // copied on deep-copy. How shall I tag them? Does Foundation already
-// have a built-in way to do this?
+// have a built-in way to do this? Note: jQuery appears to already
+// handle this in its clone method.
 
 // TODO: refactor so this stuff that uses an array of resource types
 // instead exploits the uniqueness of names and uses
