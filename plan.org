@@ -191,7 +191,7 @@ Character design:
 + hasTransportMode(mode)
 + countTransportModes(name)     // by textual name (which may be repeated, e.g., "Magic Carpet")
 + removeAllTransportModes(name) // by textual name
-+ getTransportModes()
++ getTransportModes() // an associative array (read: object)
 
 NOTE: Could the bank be a separate "resource"? banked gold, with a
 hard limit of 3. Later, we'll need much more cleverness here.

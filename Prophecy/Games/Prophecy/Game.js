@@ -1,21 +1,18 @@
-// WOLF (2015/10/24): Attempting to create a "game" where two pieces
-// move around the board following "by foot" rules, with the goal of
-// reaching the magic wilderness. Presently, I can at least display
-// two piece images in the squares where they belong :)
-
 // WOLF (2015/10/24): Need to do some design work and decide what the
-// major components are. Players are obvious (need to possess
+// major components are. Characters are obvious (need to possess
 // abilities, items, have willpower/strength and magic/health,
-// etc.). A player presumably also has a location. That location
-// should probably be a Territory, and each territory should probably
-// have an index.
+// etc.). A character presumably also has a location. That location
+// should index into the territories or BE a territory, but note that
+// the default territories are not suitable for deep copying.
 
-// Current goal: clicking on a territory moves the current piece there
-// if and only if it's a legal move.
-//
 // Next steps: Highlight every territory that's a legal move (so that
 // clicking other things is obviously a non-action; in that case, no
 // need for an error message there).
+
+// Board data, including characters and resources
+//Foundation.includeScripts("Data.js"); 
+
+
 Foundation.createClass
 (
     "GamesByEmail.ProphecyPiece",
@@ -519,4 +516,10 @@ Foundation.createClass
 	}
     }
 );
+
+
+
+
+
+
 
