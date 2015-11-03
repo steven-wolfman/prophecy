@@ -9,14 +9,28 @@
 // clicking other things is obviously a non-action; in that case, no
 // need for an error message there).
 
-// Board data, including characters and resources
+// Board data, including characters and resources. TODO!!!
 //Foundation.includeScripts("Data.js"); 
 
 
+/* 
+ * A Prophecy Piece knows (for the moment!) its location and (Player)
+ * owner. It can display and serialize itself.
+ * 
+ * A location of -1 indicates an unplaced piece. An owner of -1
+ * indicates an unspecified owner.
+ *
+ * Locations correspond to territory indexes.
+ */
 Foundation.createClass
 (
     "GamesByEmail.ProphecyPiece",
-    function(initLoc,owner)
+    /*
+     * Produce a piece at the given initial location and with the
+     * given owner (defaults to unspecified location/owner).
+     */
+    /* Parameters: (Optional) Natural, (Optional) Natural */
+    function(initLoc, owner)
     {
 	if (initLoc === undefined)
 	    initLoc = -1;
@@ -28,30 +42,36 @@ Foundation.createClass
     },
     {
 	// Methods and properties.
-	getInnerHtml:function(game, territories)
+	getInnerHtml:
+	/*
+	 * Produce an HTML String representing the piece sitting in
+	 * its curent territory. Nothing if the piece is unplaced or
+	 * unowned.
+	 *
+	 * Difficult to test. Should just call across to getInnerHtmlPrim
+	 */
+	/* String */
+	function(/* Game */ game, /* Territories */ territories)
 	{
-	    var html = "";
 	    if (this.location >= 0 && this.owner >= 0)
 	    {
-		var screenRect = territories[this.location].polygon.rectangle;
+		var screenRect = territories.length > this.location ? 
+		    territories[this.location].polygon.rectangle :
+		    undefined;
 		var clipRect = game.getPieceRect(this.owner);
-		if (screenRect && clipRect)
-		    html += "<img src=\""+game.getPieceSrc().htmlEncode()+"\" style=\""+GamesByEmail.positionImage(null,screenRect,clipRect).htmlEncode()+";z-index:800\">";
-		else
-		    html += "<img src=\""+game.getPieceSrc().htmlEncode()+"\" style=\"position:absolute;top:0;left:0;visibility:hidden;z-index:800\">";
-
-		// html += "<div style=\"position:absolute;left:" + rect.x +
-		//     ";top:" + rect.y +
-		//     ";z-index:100\" " +
-		//     "width=\"" + rect.width +
-		//     "height=\"" + rect.height +
-		//     "\">";
-		// html += "HELLO!!!";
-		// html += "</div>";
+		return GamesByEmail.ProphecyPiece.getInnerHtmlPrim(game.getPieceSrc(), screenRect, clipRect);
 	    }
-	    return html;
+	    else
+		return "";
 	},
-	appendHtml:function(htmlBuilder, game, territories)
+	appendHtml:
+	/*
+	 * Append any durable (always-on) HTML representing this piece.
+	 *
+	 * May want to refactor to eliminate this?
+	 */
+	/* Foundation.StringBuilder */ 
+	function(/* Foundation.StringBuilder */ htmlBuilder, /* Game */ game, /* Territories */ territories)
 	{
 	    if (this.location >= 0)
 	    {
@@ -59,13 +79,23 @@ Foundation.createClass
 	    }
 	    return htmlBuilder;
 	},
-	getString:function()
+	getString:
+	/*
+	 * Serialize the piece.
+	 */
+	/* String */
+	function()
 	{
 	    // Produce the serialization of the pieces.
 	    var string = this.owner + "," + this.location;
 	    return string;
 	},
-	setString:function(str)
+	setString:
+	/*
+	 * Deserialize the piece.
+	 */
+	/* void */
+	function(/* String */ str)
 	{
 	    var strings = str.split(',');
 	    if (strings.length >= 2)
@@ -86,10 +116,129 @@ Foundation.createClass
 	//resourcePack:{
 	//
         //}
+	getInnerHtmlPrim:
+	/*
+	 * Produce an HTML String representing the piece sitting in
+	 * its curent territory, as defined by the screen rectangle
+	 * for the (location in the) territory and piece rectangle for
+	 * the piece's clipping region, given the HTML for piece's
+	 * (possibly composite, i.e., containing many pieces) image
+	 * itself.
+	 * 
+	 * If screenRect or pieceRect is undefined, produce a piece in
+	 * the upper-left.
+	 */
+	/* String */
+	function(
+	    /* String */ pieceSrc,
+	    /* (Optional) Foundation.Rectangle */ screenRect, 
+	    /* (Optional) Foundation.Rectangle */ clipRect)
+	{
+	    var html = "";
+	    if (screenRect && clipRect)
+		    html += "<img src=\""+pieceSrc.htmlEncode()+"\" style=\""+GamesByEmail.positionImage(null,screenRect,clipRect).htmlEncode()+";z-index:800\">";
+		else
+		    html += "<img src=\""+pieceSrc.htmlEncode()+"\" style=\"position:absolute;top:0;left:0;visibility:hidden;z-index:800\">";
+	    return html;
+	},
     }
 );
 
 
+describe("ProphecyPiece", function() {
+    var pieceNowhere;
+    var pieceLoc2Noone;
+    var pieceLoc1Owner2;
+    var pieceLoc4Owner1;
+    
+    beforeEach(function() {
+	pieceNowhere = new GamesByEmail.ProphecyPiece();
+	pieceLoc2Noone = new GamesByEmail.ProphecyPiece(2);
+	pieceLoc1Owner2 = new GamesByEmail.ProphecyPiece(1,2);
+	pieceLoc4Owner1 = new GamesByEmail.ProphecyPiece(4,1);
+    });
+
+    it("serializes with getString", function() {
+	expect(pieceNowhere.getString()).toEqual("-1,-1");
+	expect(pieceLoc2Noone.getString()).toEqual("-1,2");
+	expect(pieceLoc1Owner2.getString()).toEqual("2,1");
+	expect(pieceLoc4Owner1.getString()).toEqual("1,4");
+
+	// And can change properly.
+	piece = new GamesByEmail.ProphecyPiece(1,2);
+	expect(piece.getString()).toEqual("2,1");
+
+	piece.owner = 7;
+	piece.location = 3;
+	expect(piece.getString()).toEqual("7,3");
+	piece.setString("1,2");
+    });
+
+    it("deserializes with setString", function() {
+	var piece = new GamesByEmail.ProphecyPiece();
+
+	piece.setString("-1,-1");
+	expect(piece.owner).toEqual(-1);
+	expect(piece.location).toEqual(-1);
+
+	piece = new GamesByEmail.ProphecyPiece();
+	piece.setString("2,-1");
+	expect(piece.owner).toEqual(2);
+	expect(piece.location).toEqual(-1);
+
+	piece = new GamesByEmail.ProphecyPiece();
+	piece.setString("1,2");
+	expect(piece.owner).toEqual(1);
+	expect(piece.location).toEqual(2);
+
+	piece = new GamesByEmail.ProphecyPiece();
+	piece.setString("4,1");
+	expect(piece.owner).toEqual(4);
+	expect(piece.location).toEqual(1);
+
+	// And can change properly.
+	piece = new GamesByEmail.ProphecyPiece();
+	piece.setString("1,2");
+	expect(piece.owner).toEqual(1);
+	expect(piece.location).toEqual(2);
+
+	piece.setString("4,1");
+	expect(piece.owner).toEqual(4);
+	expect(piece.location).toEqual(1);
+    });
+
+    it("produces appropriate inner html", function() {
+	var rect1 = new Foundation.Rectangle(0, 0, 10, 20);
+	var rect2 = new Foundation.Rectangle(5, 10, 40, 50);
+	var rect3 = new Foundation.Rectangle(55, 11, 5, 25);
+	var pieceSrc = "CONSPICIOUS TEXT";
+
+	var html;
+	var screenRect = rect1;
+	var clipRect = rect2;
+
+	html = "<img src=\"" + pieceSrc.htmlEncode() + "\" style=\"" + 
+	    GamesByEmail.positionImage(null,screenRect,clipRect).htmlEncode()+";z-index:800\">";
+	expect(GamesByEmail.ProphecyPiece.getInnerHtmlPrim(pieceSrc, screenRect, clipRect))
+	    .toEqual(html);
+
+	var screenRect = rect2;
+	var clipRect = rect3;
+
+	html = "<img src=\"" + pieceSrc.htmlEncode() + "\" style=\"" + 
+	    GamesByEmail.positionImage(null,screenRect,clipRect).htmlEncode()+";z-index:800\">";
+	expect(GamesByEmail.ProphecyPiece.getInnerHtmlPrim(pieceSrc, screenRect, clipRect))
+	    .toEqual(html);
+
+	html = "<img src=\""+pieceSrc.htmlEncode()+"\" style=\"position:absolute;top:0;left:0;visibility:hidden;z-index:800\">";
+	expect(GamesByEmail.ProphecyPiece.getInnerHtmlPrim(pieceSrc, undefined, undefined))
+	    .toEqual(html);
+	expect(GamesByEmail.ProphecyPiece.getInnerHtmlPrim(pieceSrc, rect1, undefined))
+	    .toEqual(html);
+	expect(GamesByEmail.ProphecyPiece.getInnerHtmlPrim(pieceSrc, undefined, rect1))
+	    .toEqual(html);
+    });
+});
 
 Foundation.createClass
 (

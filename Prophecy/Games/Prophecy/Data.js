@@ -1,7 +1,6 @@
-// Nothing inside the "Data" module should store any field referring
-// to anything outside the "Data" module (within the game).
-//
-// The goal is that all classes here should be deep-copyable.
+// Any object created from the Data module should be tree- (or at
+// least DAG-) structured. The goal is that all classes here should be
+// easily deep-copyable.
 //
 // EXCEPTION: I'll need to make event handlers. These should NOT be
 // copied on deep-copy. How shall I tag them? Does Foundation already

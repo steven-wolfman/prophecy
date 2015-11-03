@@ -9,7 +9,10 @@ Critical notes (2015/10/27):
      seems to have some testing capability I haven't quite sussed yet on the interface
      pieces.) Jasmine seems lightweight enough and suitable? For the moment, place
      tests at end of each file, grouped by containing type (including none)?
-
+     
+     USING JASMINE. At present, at least, this produces somewhat
+     readable output on the same page as the (testing) game.
+     
   2) A consistent documentation style. Ideally one that autoproduces docs, which this
      framework seems to support, but I don't have the convention. So, I'll use:
      
