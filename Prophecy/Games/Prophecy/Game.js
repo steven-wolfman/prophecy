@@ -71,7 +71,7 @@ Foundation.createClass
 	 * May want to refactor to eliminate this?
 	 */
 	/* Foundation.StringBuilder */ 
-	function(/* Foundation.StringBuilder */ htmlBuilder, /* Game */ game, /* Territories */ territories)
+	function(/* Foundation.StringBuilder */ htmlBuilder, /* ProphecyGame */ game, /* Territories */ territories)
 	{
 	    if (this.location >= 0)
 	    {
@@ -244,20 +244,26 @@ Foundation.createClass
 (
     "GamesByEmail.ProphecyPieces",
     Array,
-    function(pieceImages)
+    /*
+     * Construct a ProphecyPieces array.
+     */
+    function()
     {
 	// Class constructor.
 	this.length=0;
-	this.pieceImages=pieceImages;
-	//this.div=null;            // From WW2Pieces
-	//this.needUpdate=false;    // From WW2Pieces
-	//this.trackHtmlCache=null; // From WW2Pieces
     },
     {
 	// Methods and properties.
-	appendHtml:function(htmlBuilder, game, territories)
+	appendHtml:
+	/*
+	 * Append any durable (always-on) HTML representing all pieces.
+	 */
+	/* Foundation.StringBuilder */
+	function(/* Foundation.StringBuilder */ htmlBuilder, /* ProphecyGame */ game, /* Territories */ territories)
 	{
-	    htmlBuilder.append("<div id=\""+game.elementId("pieces")+"\" style=\"position:absolute;width:"+game.board.image.size.x+"; height:"+game.board.image.size.y+";overflow:hidden;z-index:800\">");
+	    htmlBuilder.append("<div id=\"" + game.elementId("pieces") + 
+			       "\" style=\"position:absolute;width:" + game.board.image.size.x + "; height:" + game.board.image.size.y + 
+			       ";overflow:hidden;z-index:800\">");
 	    for (var i = 0; i < this.length; i++) 
 	    {
 		this[i].appendHtml(htmlBuilder, game, territories);
@@ -314,10 +320,98 @@ Foundation.createClass
 );
 
 
+describe("ProphecyPieces", function() {
+    var pieceNowhere;
+    var pieceLoc2Noone;
+    var pieceLoc1Owner2;
+    var pieceLoc4Owner1;
+
+    var piecesEmpty;
+    var pieces1;
+    var pieces2;
+    
+    beforeEach(function() {
+	pieceNowhere = new GamesByEmail.ProphecyPiece();
+	pieceLoc2Noone = new GamesByEmail.ProphecyPiece(2);
+	pieceLoc1Owner2 = new GamesByEmail.ProphecyPiece(1,2);
+	pieceLoc4Owner1 = new GamesByEmail.ProphecyPiece(4,1);
+
+	// piecesEmpty is empty.
+
+	pieces1 = new GamesByEmail.ProphecyPieces();
+	pieces1.addPiece(pieceLoc1Owner2);
+
+	pieces2 = new GamesByEmail.ProphecyPieces();
+	pieces2.addPiece(pieceLoc2Noone);
+	pieces2.addPiece(pieceLoc4Owner1);
+    });
+
+    it("performs addPiece correctly", function() {
+	// TODO: decide if toBe is the right thing here or if I need
+	// equality testing. (Seems like the latter.)
+
+	expect(pieces1.length).toBe(1);
+	expect(pieces1[0]).toBe(pieceLoc1Owner2);
+
+	expect(pieces2.length).toBe(2);
+	expect(pieces2[0]).toBe(pieceLoc2Noone);
+	expect(pieces2[1]).toBe(pieceLoc4Owner1);
+
+	var p = new GamesByEmail.ProphecyPiece(3,3);
+	pieces2.addPiece(p);
+	expect(pieces2.length).toBe(3);
+	expect(pieces2[0]).toBe(pieceLoc2Noone);
+	expect(pieces2[1]).toBe(pieceLoc4Owner1);
+	expect(pieces2[2]).toBe(p);
+    });
+
+    it("serializes with getString", function() {
+	expect(pieces1.getString()).toEqual(pieceLoc1Owner2.getString());
+	expect(pieces2.getString()).toEqual(pieceLoc2Noone.getString() + "|" + 
+					   pieceLoc4Owner1.getString());
+
+	var p = new GamesByEmail.ProphecyPiece(3,3);
+	pieces2.addPiece(p);
+	expect(pieces2.getString()).toEqual(pieceLoc2Noone.getString() + "|" + 
+					   pieceLoc4Owner1.getString() + "|" +
+					   "3,3");
+
+    });
+
+    it("deserializes with setString", function() {
+	var pieces = new GamesByEmail.ProphecyPieces();
+
+	pieces.setString(pieceNowhere.getString() + "|" + pieceLoc2Noone.getString());
+	expect(pieces.length).toBe(2);
+	expect(pieces[0].getString()).toEqual(pieceNowhere.getString());
+	expect(pieces[1].getString()).toEqual(pieceLoc2Noone.getString());
+
+	pieces.setString(pieceLoc1Owner2.getString());
+	expect(pieces.length).toBe(1);
+	expect(pieces[0].getString()).toEqual(pieceLoc1Owner2.getString());
+    });
+
+    // Not easy to test b/c of game/territories
+    //it("produces appropriate static html with appendHtml", function() {
+    //
+    //});
+
+    it("udpates inner html appropriately", function() {
+	// TODO: mock a game object that accepts getElement, expects
+	// "pieces" and produces an object that is identifiable later.
+	//
+	// mock object must also accept setInnerHtml with the object
+	// produced earlier and appropriate html for the pieces.
+    });
+});
+
 Foundation.createClass
 (
     "GamesByEmail.ProphecyGame",
     GamesByEmail.Game, // This is the base class that we are extending (the tutorial for now).
+    /*
+     * Constructor.
+     */
     function()
     {
 	// This is our class contructor.
@@ -326,21 +420,31 @@ Foundation.createClass
     },
     {
 	// This will hold our methods and properties.
-	checkForWin:function(piece)
+	checkForWin:
+	/*
+	 * Return true if the player corresponding to the provided
+	 * piece has won. The current player's piece is used if piece
+	 * is not provided.
+	 */
+	/* Boolean */
+	function(/* (Optional) ProphecyPiece */ piece)
 	{
+	    // Stub
 	    if (piece === undefined)
 		piece = this.getCurrentPiece();
 	    return piece.location === this.winningLocation;
 	},
-	sendMove:function()
+	sendMove:
+	/*
+	 * Commit to and communicate the move to the server.
+	 *
+	 * TODO: update based on GamesByEmail.Game sendMove documentation.
+	 */
+	/* TODO (return type? void?) */
+	function()
 	{
 	    this.clearMouseEvents();
-	    // TODO (wolf): figure out how to handle this.  I think
-	    // I'll start with a "slot" for each territory containing
-	    // numbers for the pieces that are there.  I'll want a
-	    // "getString/setString" for the board and then for each
-	    // component of the board, working from WW2's style.
-	    this.info.board = this.getString();
+	    this.info.board = this.getString(); // serialize into the board slot
 	    var opponent=this.player.team.nextTeam();
 	    if (this.checkForWin())
 		this.setEnded(this.player.team);
@@ -350,16 +454,29 @@ Foundation.createClass
 	    }
 	    return Super.sendMove();
 	},
-	territoryAtPoint:function(point)
+	territoryAtPoint:
+	/*
+	 * Produce the territory at the given point on the screen.
+	 */
+	/* Territory */ function(/* TODO */ point)
 	{
 	    return this.territories.findAtPoint(point);
 	},
-	getCurrentPiece:function()
+	getCurrentPiece:
+	/*
+	 * Get the current player's piece.
+	 */
+	/* ProphecyPiece */ function()
 	{
 	    var playerIndex = this.player.team.color;
 	    return this.pieces[playerIndex];
 	},
-	getCurrentTerritory:function(piece)
+	getCurrentTerritory:
+	/*
+	 * Produce the territory occupied by the current player or
+	 * null (if no single, clear current territory).
+	 */
+	/* Territory */ function(/* ProphecyPiece */ piece)
 	{
 	    if (piece === undefined)
 		piece = this.getCurrentPiece();
@@ -370,6 +487,8 @@ Foundation.createClass
 	},
 	mouseUp:function(screenPoint)
 	{
+	    // TODO: continue function signatures from here.
+	    
 	    // First, undo a move if we have already made one.
 	    if (this.madeMove)
 		this.undo();
