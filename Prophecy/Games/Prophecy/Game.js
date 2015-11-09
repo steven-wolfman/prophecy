@@ -347,22 +347,21 @@ describe("ProphecyPieces", function() {
     });
 
     it("performs addPiece correctly", function() {
-	// TODO: decide if toBe is the right thing here or if I need
-	// equality testing. (Seems like the latter.)
-
+	// Using getString so that copies of the pieces will still
+	// compare equal.
 	expect(pieces1.length).toBe(1);
-	expect(pieces1[0]).toBe(pieceLoc1Owner2);
+	expect(pieces1[0].getString()).toEqual(pieceLoc1Owner2.getString());
 
 	expect(pieces2.length).toBe(2);
-	expect(pieces2[0]).toBe(pieceLoc2Noone);
-	expect(pieces2[1]).toBe(pieceLoc4Owner1);
+	expect(pieces2[0].getString()).toBe(pieceLoc2Noone.getString());
+	expect(pieces2[1].getString()).toBe(pieceLoc4Owner1.getString());
 
 	var p = new GamesByEmail.ProphecyPiece(3,3);
 	pieces2.addPiece(p);
 	expect(pieces2.length).toBe(3);
-	expect(pieces2[0]).toBe(pieceLoc2Noone);
-	expect(pieces2[1]).toBe(pieceLoc4Owner1);
-	expect(pieces2[2]).toBe(p);
+	expect(pieces2[0].getString()).toBe(pieceLoc2Noone.getString());
+	expect(pieces2[1].getString()).toBe(pieceLoc4Owner1.getString());
+	expect(pieces2[2].getString()).toBe(p.getString());
     });
 
     it("serializes with getString", function() {
