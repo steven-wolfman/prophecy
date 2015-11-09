@@ -363,8 +363,8 @@ Foundation.createClass(
 	    
 	    var init = this.levels[type];
 	    this.levels[type] = Math.min(Math.max(this.levels[type] + amount, 
-						      GamesByEmail.Data.Character.DEFAULT_MIN),
-					     GamesByEmail.Data.Character.DEFAULT_MAX);
+						  GamesByEmail.Data.Character.DEFAULT_MIN),
+					 GamesByEmail.Data.Character.DEFAULT_MAX);
 	    return this.levels[type] - init;
 	},
 	getResource:
@@ -377,6 +377,14 @@ Foundation.createClass(
 	{
 	    return this.levels[type];
 	},
+	getResources:
+	/*
+	 * Gets all resource names that are defined for this character.
+	 */
+	/* Array<String> */ function()
+	{
+	    return GamesByEmail.Data.Base.getMapKeys(this.levels);
+	}
     },
     {
 	// Static methods
@@ -449,6 +457,12 @@ describe("GamesByEmail.Data.Character", function() {
 	expect(charGold4Magic1.addResource("Magic", 2)).toBe(2);
 	expect(charGold4Magic1.getResource("Magic")).toBe(3);
 	expect(charNothing.getResource("Health")).toBeUndefined();
+    });
+    
+    it("produces the right resources list", function() {
+	expect(charNothing.getResources()).toEqual([]);
+	expect(charGold2.getResources()).toEqual(["Gold"]);
+	expect(charGold4Magic1.getResources()).toEqual(["Gold","Magic"]);
     });
 });
 
@@ -539,72 +553,46 @@ Foundation.createClass(
 	isNegative:
 	/* Boolean */ function() { throw "unimplemented"; },
 	/*
-	 * Determines whether a cost can be compared to another
-	 * cost. Note, however, that two comparable resources may
-	 * still not dominate in either direction or domination may be
-	 * situational (e.g., if one costs 2 magic and the other 1
-	 * magic and 1 gold or if one can cost 1+ magic up to all of
-	 * it and the other costs 2 magic).
+	 * Produce true if this dominates cost for the given
+	 * character. I.e., this cost is WEAKLY more expensive than
+	 * (really "at least as expensive as") cost along all
+	 * dimensions.
 	 *
-	 * If it is, then it can be compared resource-by-resource; if
-	 * not, then it should not be considered to dominate or be
-	 * dominated by any resource.
-	 */
-	isComparable:
-	/* Boolean */ function() { throw "unimplemented"; },
-	/*
-	 * Produce true if this dominates cost. I.e., this cost is
-	 * weakly more expensive than (really "at least as expensive
-	 * as") cost along all dimensions.
-	 *
-	 * This will always be false if either cost is
-	 * incomparable. If two costs dominate each other, they are
-	 * equal. This comparison takes ranges into account (and so
-	 * will not return true (in the base implementation) either
-	 * way for two things that both cost 1--3 magic, since the
-	 * conditions under which they take on different costs may
-	 * differ).
+	 * PRECONDITION: this.canPay(character) && cost.canPay(character)
 	 *
 	 * (Best to test against true (... === true), since we may
 	 * decide later to have some other return value on false?)
 	 */
 	dominates:
-	/* Boolean */ function(/* Cost */ cost)
+	/* Boolean */ function(/* Cost */ cost, /* Character */ character)
 	{
-	    // TODO: test!!!
-	    if (!this.isComparable() || !cost.isComparable())
-		return false;
+	    // NOTE: testing with SimpleCost only for now.
+	    //
+	    // However, any other cost that has a working "pay"
+	    // function should be fine.
+	    var char1 = character.deepCopy();
+	    var char2 = character.deepCopy();
 	    
-	    var thisResources = this.getResourceTypes();
-	    var thatResources = cost.getResourceTypes();
-	    for (var i = 0; i < thisResources.length; i++)
-	    {
-		var type = thisResources[i];
-		if (!(this.getMax(type) <= cost.getMin(type)))
-		{
-		    return false;
-		}
-	    }
-	    for (var i = 0; i < thatResources.length; i++)
-	    {
-		var type = thatResources[i];
-		if (!(this.getMax(type) <= cost.getMin(type)))
-		{
-		    return false;
-		}
-	    }
-	    return true;
+	    this.pay(char1);
+	    cost.pay(char2);
+
+	    var result = true;
+	    char1.getResources().forEach(function(key) {
+		var c1 = char1.getResource(key);
+		var c2 = char2.getResource(key) === undefined ?
+		    0 : char2.getResource(key);
+		result = result && (c1 <= c2);
+	    });
+	    
+	    char2.getResources().forEach(function(key) {
+		var c1 = char1.getResource(key) === undefined ?
+		    0 : char1.getResource(key);
+		var c2 = char2.getResource(key);
+		result = result && (c1 <= c2);
+	    });
+	    
+	    return result;
 	},
-	/*
-	 * The minimum cost in that resource (zero if not listed).
-	 */
-	getMin:
-	/* Integer */ function(/* String */ resource) { throw "unimplemented"; },
-	/*
-	 * The maximum cost in that resource (zero if not listed; can be infinite??)
-	 */
-	getMax:
-	/* Integer */ function(/* String */ resource) { throw "unimplemented"; },
 	/*
 	 * An array of all the types of resources relevant to this cost.
 	 */
@@ -713,11 +701,11 @@ Foundation.createClass(
 	},
 	addSummaryHtml:function(htmlBuilder)
 	{
-	    // TODO!!!
+	    // TODO
 	},
 	addFullHtml:function(htmlBuilder)
 	{
-	    // TODO!!!
+	    // TODO
 	},
 	isPositive:function()
 	{
@@ -739,28 +727,6 @@ Foundation.createClass(
 		});
 	    return result;
 	},
-	isComparable:function()
-	{
-	    return true;
-	},
-	getMin:function(resource)
-	{
-	    if (this.mandatoryResources[resource] === undefined) {
-		// TODO: assert that this.uptoResources[resource] === undefined?
-		return 0;
-	    }
-	    return Math.min(this.mandatoryResources[resource],
-			    this.uptoResources[resource]);
-	},
-	getMax:function(resource)
-	{
-	    if (this.mandatoryResources[resource] === undefined) {
-		// TODO: assert that this.uptoResources[resource] === undefined?
-		return 0;
-	    }
-	    return Math.max(this.mandatoryResources[resource],
-			    this.uptoResources[resource]);
-	}
     },
     {
 	// Static methods
@@ -806,7 +772,13 @@ describe("GamesByEmail.Data.SimpleCost", function() {
     var scG1Mn1;     // +-
     var scG1u0Mn1u0; // neither
 
+    var charAll100;
+    var charAll2;
+
     beforeEach(function() {
+	charAll100 = new GamesByEmail.Data.Character({"Strength":100, "Gold":100, "Magic":100, "Health":100});
+	charAll2 = new GamesByEmail.Data.Character({"Strength":2, "Gold":2, "Magic":2, "Health":2});
+
 	scG1M3 = new GamesByEmail.Data.SimpleCost(
 	    {"Gold":1, "Magic":3},
 	    {"Gold":1, "Magic":3});
@@ -825,7 +797,82 @@ describe("GamesByEmail.Data.SimpleCost", function() {
 	scG1u0Mn1u0 = GamesByEmail.Data.SimpleCost.makePaymentChecker(
 	    {"Gold":1, "Magic":-1});
     });
-    
+
+    describe("can test domination", function() {
+	// Not testing mandatory levels, since they are irrelevant to
+	// domination.
+
+	var makeSC = GamesByEmail.Data.SimpleCost.makeUnrestricted;
+
+	// Desired tests:
+	it("when it dominates but never ties", function() {
+	    expect(makeSC({"Strength":5, "Gold":2, "Magic":-1, "Health":0}).
+		   dominates(makeSC({"Strength":2, "Gold":-1, "Magic":-3, "Health":-2}), charAll100)).
+		toBe(true);
+	});
+
+	it("when it dominates but always ties", function() {
+	    expect(makeSC({"Strength":5, "Gold":2, "Magic":-1, "Health":0}).
+		   dominates(makeSC({"Strength":5, "Gold":2, "Magic":-1, "Health":0}), charAll100)).
+		toBe(true);
+	});
+
+	it("when it dominates but sometimes ties", function() {
+	    expect(makeSC({"Strength":5, "Gold":2, "Magic":-1, "Health":0}).
+		   dominates(makeSC({"Strength":-1, "Gold":1, "Magic":-1, "Health":0}), charAll100)).
+		toBe(true);
+	});
+
+	it("when it does not dominate, sometimes wins, sometimes loses", function() {
+	    expect(makeSC({"Strength":5, "Gold":2, "Magic":-1, "Health":0}).
+		   dominates(makeSC({"Strength":-1, "Gold":4, "Magic":-1, "Health":-3}), charAll100)).
+		not.toBe(true);
+	});
+
+	it("when it does not dominate via an undefined field in me/you", function() {
+	    expect(makeSC({}).
+		   dominates(makeSC({"Strength":-1}), charAll100)).
+		toBe(true);
+	    expect(makeSC({}).
+		   dominates(makeSC({"Strength":0}), charAll100)).
+		toBe(true);
+	    expect(makeSC({"Strength":0}).
+		   dominates(makeSC({}), charAll100)).
+		toBe(true);
+	    expect(makeSC({"Strength":1}).
+		   dominates(makeSC({}), charAll100)).
+		toBe(true);
+	});
+
+	it("when it does not dominate via an undefined field in me/you", function() {
+	    expect(makeSC({"Strength":-1}).
+		   dominates(makeSC({}), charAll100)).
+		not.toBe(true);
+	    expect(makeSC({}).
+		   dominates(makeSC({"Strength":1}), charAll100)).
+		not.toBe(true);
+	});
+	
+	it("when it dominates despite running out of resources to charge in some cases", function() {
+	    expect(makeSC({"Strength":5, "Gold":3, "Magic":-1, "Health":0}).
+		   dominates(makeSC({"Strength":1, "Gold":6, "Magic":-1, "Health":0}), charAll2)).
+		toBe(true);
+	});
+
+	it("when it dominates BECAUSE it runs out of resources to charge in some cases", function() {
+	    expect(makeSC({"Strength":2, "Gold":3, "Magic":-1, "Health":0}).
+		   dominates(makeSC({"Strength":4, "Gold":6, "Magic":-1, "Health":0}), charAll2)).
+		toBe(true);
+	});
+
+	// This CANNOT happen, since we test only WEAK domination.
+	// it("when it does not dominate because it runs out of resources to charge in some cases", function() {
+	//     expect(makeSC({"Strength":5, "Gold":1, "Magic":-1, "Health":0}).
+	// 	   dominates(makeSC({"Strength":3, "Gold":1, "Magic":-1, "Health":0}), charAll2)).
+	// 	not.toBe(true);
+	// });
+    });
+
     describe("can be constructed appropriately", function() {
 	it("with supplied values for mandatory/upto (whitebox)", function() {
 	    expect(scG1M3.mandatoryResources).toEqual({"Gold":1, "Magic":3});
@@ -1022,46 +1069,39 @@ describe("GamesByEmail.Data.SimpleCost", function() {
 	expect(scG1u0Mn1u0.isNegative()).not.toBe(true);
     });
 
-    it("is comparable", function() {
-	expect(scG1M3.isComparable()).toBe(true);
-	expect(scG0un2Hn1.isComparable()).toBe(true);
-	expect(scMn1u3.isComparable()).toBe(true);
-	expect(scG2un2.isComparable()).toBe(true);
-    });
+    // it("can report minima correctly", function() {
+    // 	expect(scG1M3.getMin("Gold")).toBe(1);
+    // 	expect(scG1M3.getMin("Magic")).toBe(3);
+    // 	expect(scG1M3.getMin("Health")).toBe(0);
 
-    it("can report minima correctly", function() {
-	expect(scG1M3.getMin("Gold")).toBe(1);
-	expect(scG1M3.getMin("Magic")).toBe(3);
-	expect(scG1M3.getMin("Health")).toBe(0);
+    // 	// On gold: Mandatory is max; upto is min.
+    // 	expect(scG0un2Hn1.getMin("Gold")).toBe(-2);
+    // 	expect(scG0un2Hn1.getMin("Health")).toBe(-1);
+    // 	expect(scG0un2Hn1.getMin("Magic")).toBe(0);
 
-	// On gold: Mandatory is max; upto is min.
-	expect(scG0un2Hn1.getMin("Gold")).toBe(-2);
-	expect(scG0un2Hn1.getMin("Health")).toBe(-1);
-	expect(scG0un2Hn1.getMin("Magic")).toBe(0);
+    // 	// On magic: Mandatory is min; upto is max.
+    // 	expect(scMn1u3.getMin("Magic")).toBe(0);
+    // 	expect(scMn1u3.getMin("Health")).toBe(0);
 
-	// On magic: Mandatory is min; upto is max.
-	expect(scMn1u3.getMin("Magic")).toBe(-1);
-	expect(scMn1u3.getMin("Health")).toBe(0);
+    // 	expect(scG2un2.getMin("Gold")).toBe(-2);
+    // 	expect(scG2un2.getMin("Health")).toBe(0);
+    // });
 
-	expect(scG2un2.getMin("Gold")).toBe(-2);
-	expect(scG2un2.getMin("Health")).toBe(0);
-    });
+    // it("can report maxima correctly", function() {
+    // 	expect(scG1M3.getMax("Gold")).toBe(1);
+    // 	expect(scG1M3.getMax("Magic")).toBe(3);
+    // 	expect(scG1M3.getMax("Health")).toBe(0);
 
-    it("can report maxima correctly", function() {
-	expect(scG1M3.getMax("Gold")).toBe(1);
-	expect(scG1M3.getMax("Magic")).toBe(3);
-	expect(scG1M3.getMax("Health")).toBe(0);
+    // 	// On gold: Mandatory is max; upto is min.
+    // 	expect(scG0un2Hn1.getMax("Gold")).toBe(0);
+    // 	expect(scG0un2Hn1.getMax("Health")).toBe(-1);
+    // 	expect(scG0un2Hn1.getMax("Magic")).toBe(0);
 
-	// On gold: Mandatory is max; upto is min.
-	expect(scG0un2Hn1.getMax("Gold")).toBe(0);
-	expect(scG0un2Hn1.getMax("Health")).toBe(-1);
-	expect(scG0un2Hn1.getMax("Magic")).toBe(0);
+    // 	// On magic: Mandatory is min; upto is max.
+    // 	expect(scMn1u3.getMax("Magic")).toBe(3);
+    // 	expect(scMn1u3.getMax("Health")).toBe(0);
 
-	// On magic: Mandatory is min; upto is max.
-	expect(scMn1u3.getMax("Magic")).toBe(3);
-	expect(scMn1u3.getMax("Health")).toBe(0);
-
-	expect(scG2un2.getMax("Gold")).toBe(2);
-	expect(scG2un2.getMax("Health")).toBe(0);
-    });
+    // 	expect(scG2un2.getMax("Gold")).toBe(0);
+    // 	expect(scG2un2.getMax("Health")).toBe(0);
+    // });
 });
