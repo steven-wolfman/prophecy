@@ -466,7 +466,117 @@ describe("GamesByEmail.Data.Character", function() {
     });
 });
 
-// TODO: TransportMode classes.
+/*
+ * A mode of transportation available to a character. (Abstract!)
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.TransportMode",
+    null,
+    GamesByEmail.Data.Base,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCost:
+	/*
+	 * Find the cost of moving the character between the listed
+	 * territories. ASSUME the character is in the
+	 * fromTerritory. A cost of null indicates that it is not
+	 * possible to connect the given territories with this mode of
+	 * transport, REGARDLESS of whether or not the character can
+	 * pay.
+	 */
+	/* Cost */ function(
+	    /* Territory */ fromTerritory, 
+	    /* Territory */ toTerritory, 
+	    /* Character */ character)
+	{
+	    throw "unimplemented";
+	},
+	canConnect:
+	/*
+	 * Determine whether (regardless of whether the player can pay
+	 * the price), this transport mode could move a player between
+	 * the listed territories. ASSUME the character is in the
+	 * fromTerritory.
+	 */
+	/* Boolean */ function(
+	    /* Territory */ fromTerritory, 
+	    /* Territory */ toTerritory, 
+	    /* Character */ character)
+	{
+	    return this.findCost(fromTerritory, toTerritory, character) !== null;
+	}
+    },
+    {
+	// Static methods
+    }
+);
+
+/*
+ * The most basic mode of transportation: not moving!
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.Resting",
+    GamesByEmail.Data.TransportMode,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCost:function(fromTerritory, toTerritory, character)
+	{
+	    if (fromTerritory.index === toTerritory.index)
+		// For the moment, you can ALWAYS stay where you
+		// are. (That's not necessarily true everywhere,
+		// although some places where it's not true (e.g.,
+		// most astral planes) probably don't matter.)
+		return new GamesByEmail.Data.SimpleCost();
+	    else
+		return null;
+	}
+    },
+    {
+	// Static methods
+    }
+);
+
+describe("TransportModes:", function() {
+    // it("uses findCost as expected to implement canConnect", function() {
+    // 	expect(new GamesByEmail.Data.Resting().canConnect(
+    // 	    {index:4}, {index:4}, undefined)).toBe(true);
+    // 	expect(new GamesByEmail.Data.Resting().canConnect(
+    // 	    {index:2}, {index:2}, undefined)).toBe(true);
+    // 	expect(new GamesByEmail.Data.Resting().canConnect(
+    // 	    {index:2}, {index:4}, undefined)).not.toBe(true);
+    // });
+
+    describe("GamesByEmail.Data.Resting", function() {
+	it("can find costs", function() {
+	    new GamesByEmail.Data.SimpleCost();
+	    // expect(new GamesByEmail.Data.SimpleCost().dominates(
+	    // 	new GamesByEmail.Data.Resting().findCost(
+	    // 	    {index:4}, {index:4}, undefined))).toBe(true);
+	    // expect(new GamesByEmail.Data.SimpleCost().dominates(
+	    // 	new GamesByEmail.Data.Resting().findCost(
+	    // 	    {index:2}, {index:2}, undefined))).toBe(true);
+	    // expect(new GamesByEmail.Data.SimpleCost().dominates(
+	    // 	new GamesByEmail.Data.Resting().findCost(
+	    // 	    {index:4}, {index:2}, undefined))).not.toBe(true);
+	});
+    });
+});
+
+
 
 // ============================================================
 // Costs
@@ -613,7 +723,6 @@ Foundation.createClass(
  */
 Foundation.createClass(
     "GamesByEmail.Data.SimpleCost",
-    null,
     GamesByEmail.Data.Cost,
     /*
      * Constructor. A simple cost has two parts, the mandatory
@@ -639,24 +748,25 @@ Foundation.createClass(
     /* Parameters: Map<String -> Integer>, Map<String -> Integer> */
     function(mandatoryResources,uptoResources)
     {
+	if (mandatoryResources === undefined)
+	    mandatoryResources = {};
+
+	if (uptoResources === undefined)
+	    uptoResources = {};
+
 	var mr = GamesByEmail.Data.Base.shallowCopyMap(mandatoryResources); // need local copies accessible inside closures.
 	var ur = GamesByEmail.Data.Base.shallowCopyMap(uptoResources);
-	if (mr === undefined)
-	    mr = {};
-
-	if (ur === undefined)
-	    ur = {};
-
-	GamesByEmail.Data.Base.getMapKeys(mr).forEach(
-	    function(key) {
-		if (ur[key] === undefined)
-		    ur[key] = 0;
-	    });
 
 	GamesByEmail.Data.Base.getMapKeys(ur).forEach(
 	    function(key) {
 		if (mr[key] === undefined)
 		    mr[key] = 0;
+	    });
+
+	GamesByEmail.Data.Base.getMapKeys(mr).forEach(
+	    function(key) {
+		if (ur[key] === undefined)
+		    ur[key] = 0;
 	    });
 
 	this.mandatoryResources = mr;
@@ -874,6 +984,16 @@ describe("GamesByEmail.Data.SimpleCost", function() {
     });
 
     describe("can be constructed appropriately", function() {
+	it("with missing parameters", function() {
+	    var sc = new GamesByEmail.Data.SimpleCost({"Gold":2});
+	    expect(sc.mandatoryResources).toEqual({"Gold":2});
+	    expect(sc.uptoResources).toEqual({"Gold":0});
+
+	    var sc = new GamesByEmail.Data.SimpleCost();
+	    expect(sc.mandatoryResources).toEqual({});
+	    expect(sc.uptoResources).toEqual({});
+	});
+
 	it("with supplied values for mandatory/upto (whitebox)", function() {
 	    expect(scG1M3.mandatoryResources).toEqual({"Gold":1, "Magic":3});
 	    expect(scG1M3.uptoResources).toEqual({"Gold":1, "Magic":3});

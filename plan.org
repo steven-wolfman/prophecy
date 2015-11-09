@@ -28,13 +28,13 @@ Finished a version with a board and simple movement.
         adding costs. (Find the costs to move to all spaces on the
         board, then from each space on the board with finite cost,
         find the cost to move to the target space. Add them.)
-    + Can display itself (which includes displaying its cost?)
-    + Can provide its source(s). (E.g., the spell to move twice used
+    + DEFER: Can display itself (which includes displaying its cost?)
+    + DEFER: Can provide its source(s). (E.g., the spell to move twice used
       with horseback riding and blacksmithing would yield that spell
       ability, and the blacksmithing ability. The magic carpet would
       just yield the carpet item.)
       + Built-in transport modes have no source.
-    + Can be an "instead-of-movement" ability.
+    + DEFER: Can be an "instead-of-movement" ability.
     + Built-in transport modes include:
       + Stand (free, only for current space)
       + Walk
