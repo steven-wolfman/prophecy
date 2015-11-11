@@ -466,117 +466,6 @@ describe("GamesByEmail.Data.Character", function() {
     });
 });
 
-/*
- * A mode of transportation available to a character. (Abstract!)
- */
-Foundation.createClass(
-    "GamesByEmail.Data.TransportMode",
-    null,
-    GamesByEmail.Data.Base,
-    /*
-     * Constructor.
-     */
-    function()
-    {
-	// Nothing to do.
-    },
-    {
-	// Methods
-	findCost:
-	/*
-	 * Find the cost of moving the character between the listed
-	 * territories. ASSUME the character is in the
-	 * fromTerritory. A cost of null indicates that it is not
-	 * possible to connect the given territories with this mode of
-	 * transport, REGARDLESS of whether or not the character can
-	 * pay.
-	 */
-	/* Cost */ function(
-	    /* Territory */ fromTerritory, 
-	    /* Territory */ toTerritory, 
-	    /* Character */ character)
-	{
-	    throw "unimplemented";
-	},
-	canConnect:
-	/*
-	 * Determine whether (regardless of whether the player can pay
-	 * the price), this transport mode could move a player between
-	 * the listed territories. ASSUME the character is in the
-	 * fromTerritory.
-	 */
-	/* Boolean */ function(
-	    /* Territory */ fromTerritory, 
-	    /* Territory */ toTerritory, 
-	    /* Character */ character)
-	{
-	    return this.findCost(fromTerritory, toTerritory, character) !== null;
-	}
-    },
-    {
-	// Static methods
-    }
-);
-
-/*
- * The most basic mode of transportation: not moving!
- */
-Foundation.createClass(
-    "GamesByEmail.Data.Resting",
-    GamesByEmail.Data.TransportMode,
-    /*
-     * Constructor.
-     */
-    function()
-    {
-	// Nothing to do.
-    },
-    {
-	// Methods
-	findCost:function(fromTerritory, toTerritory, character)
-	{
-	    if (fromTerritory.index === toTerritory.index)
-		// For the moment, you can ALWAYS stay where you
-		// are. (That's not necessarily true everywhere,
-		// although some places where it's not true (e.g.,
-		// most astral planes) probably don't matter.)
-		return new GamesByEmail.Data.SimpleCost();
-	    else
-		return null;
-	}
-    },
-    {
-	// Static methods
-    }
-);
-
-describe("TransportModes:", function() {
-    // it("uses findCost as expected to implement canConnect", function() {
-    // 	expect(new GamesByEmail.Data.Resting().canConnect(
-    // 	    {index:4}, {index:4}, undefined)).toBe(true);
-    // 	expect(new GamesByEmail.Data.Resting().canConnect(
-    // 	    {index:2}, {index:2}, undefined)).toBe(true);
-    // 	expect(new GamesByEmail.Data.Resting().canConnect(
-    // 	    {index:2}, {index:4}, undefined)).not.toBe(true);
-    // });
-
-    describe("GamesByEmail.Data.Resting", function() {
-	it("can find costs", function() {
-	    new GamesByEmail.Data.SimpleCost();
-	    // expect(new GamesByEmail.Data.SimpleCost().dominates(
-	    // 	new GamesByEmail.Data.Resting().findCost(
-	    // 	    {index:4}, {index:4}, undefined))).toBe(true);
-	    // expect(new GamesByEmail.Data.SimpleCost().dominates(
-	    // 	new GamesByEmail.Data.Resting().findCost(
-	    // 	    {index:2}, {index:2}, undefined))).toBe(true);
-	    // expect(new GamesByEmail.Data.SimpleCost().dominates(
-	    // 	new GamesByEmail.Data.Resting().findCost(
-	    // 	    {index:4}, {index:2}, undefined))).not.toBe(true);
-	});
-    });
-});
-
-
 
 // ============================================================
 // Costs
@@ -1225,3 +1114,162 @@ describe("GamesByEmail.Data.SimpleCost", function() {
     // 	expect(scG2un2.getMax("Health")).toBe(0);
     // });
 });
+
+
+// ============================================================
+// Transport Modes
+// ============================================================
+
+/*
+ * A mode of transportation available to a character. (Abstract!)
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.TransportMode",
+    null,
+    GamesByEmail.Data.Base,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCostByDist:
+	/*
+	 * Should not be called outside the context of
+	 * TransportModes. (Would be protected if that was possible
+	 * here.) Use findCost instead.
+	 *
+	 * Given a walking distance, produce the cost to move that
+	 * distance. Produce null if it is not possible to move that
+	 * distance or undefined if walking distance alone is
+	 * insufficient to decide.
+	 */
+	/* Cost */ function(/* Natural */ walkingDistance, /* Character */ character)
+	{
+	    throw "unimplemented";
+	},
+	findCost:
+	/*
+	 * Find the cost of moving the character between the listed
+	 * territories. ASSUME the character is in the
+	 * fromTerritory. A cost of null indicates that it is not
+	 * possible to connect the given territories with this mode of
+	 * transport, REGARDLESS of whether or not the character can
+	 * pay.
+	 */
+	/* Cost */ function(
+	    /* Territory */ fromTerritory, 
+	    /* Territory */ toTerritory, 
+	    /* Character */ character)
+	{
+	    var distance = GamesByEmail.Data.TransportMode.findWalkingDistance(fromTerritory, toTerritory);
+	    if (distance === null)
+		return null;
+	    
+	    return this.findCostByDist(distance, character);
+	},
+	canConnect:
+	/*
+	 * Determine whether (regardless of whether the player can pay
+	 * the price), this transport mode could move a player between
+	 * the listed territories. ASSUME the character is in the
+	 * fromTerritory.
+	 */
+	/* Boolean */ function(
+	    /* Territory */ fromTerritory, 
+	    /* Territory */ toTerritory, 
+	    /* Character */ character)
+	{
+	    return this.findCost(fromTerritory, toTerritory, character) !== null;
+	}
+    },
+    {
+	// Static methods
+	findWalkingDistance:
+	/*
+	 * Find the walking distance between the two territories.
+	 */
+	/* Natural or null */ function(/* Territory */ fromTerritory, /* Territory */ toTerritory)
+	{
+	    var NUM_TERRITORIES_IN_RING = 20;
+	    // TODO: move distance finding into the territory class!
+	    return Math.min(Math.abs(fromTerritory.index - toTerritory.index),
+			    Math.abs(fromTerritory.index - toTerritory.index - NUM_TERRITORIES_IN_RING),
+			    Math.abs(fromTerritory.index - toTerritory.index + NUM_TERRITORIES_IN_RING));
+	}
+    }
+);
+
+/*
+ * The most basic mode of transportation: not moving!
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.Resting",
+    GamesByEmail.Data.TransportMode,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCostByDist:function(distance, character)
+	{
+	    if (distance == 0)
+		// For the moment, you can ALWAYS stay where you
+		// are. (That's not necessarily true everywhere,
+		// although some places where it's not true (e.g.,
+		// most astral planes) probably don't matter.)
+		return new GamesByEmail.Data.SimpleCost();
+	    else
+		return null;
+	}
+    },
+    {
+	// Static methods
+    }
+);
+
+describe("TransportModes:", function() {
+    var free;
+    var resting;
+    var character;
+
+    beforeEach(function() {
+	free = new GamesByEmail.Data.SimpleCost();
+	resting = new GamesByEmail.Data.Resting();
+	character = new GamesByEmail.Data.Character();
+    });
+
+    it("uses findCost as expected to implement canConnect", function() {
+    	expect(resting.canConnect({index:4}, {index:4}, character)).toBe(true);
+    	expect(resting.canConnect({index:2}, {index:2}, character)).toBe(true);
+    	expect(resting.canConnect({index:2}, {index:4}, character)).not.toBe(true);
+    });
+
+    describe("GamesByEmail.Data.Resting", function() {
+	it("can find costs", function() {
+	    expect(free.dominates(resting.findCost({index:4}, {index:4}, character), character)).toBe(true);
+	    expect(free.dominates(resting.findCost({index:2}, {index:2}, character), character)).toBe(true);
+	    expect(resting.findCost({index:4}, {index:2}, character)).toBeNull();
+	});
+    });
+
+    describe("GamesByEmail.Data.Resting", function() {
+	it("can find costs by distance", function() {
+	    expect(free.dominates(resting.findCostByDist(0, character), character)).toBe(true);
+	    expect(free.dominates(resting.findCostByDist(0, character), character)).toBe(true);
+	    expect(free.dominates(resting.findCostByDist(0, character), character)).toBe(true);
+	    expect(free.dominates(resting.findCost({index:2}, {index:2}, character), character)).toBe(true);
+	    expect(resting.findCost({index:4}, {index:2}, character)).toBeNull();
+	});
+    });
+});
+
+
+
