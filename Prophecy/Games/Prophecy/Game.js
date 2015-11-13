@@ -621,162 +621,142 @@ Foundation.createClass
 		{ // 0
 		    title:"0",
 		    polygon:new Foundation.Polygon(219,52,211,3,289,3,281,52),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[19,1]
+		    adjacentIndices:[19,1],
+		    terrtype:"Civilization",
+		    port:true,portal:false
 		},
 		{ // 1
 		    title:"1",
 		    polygon:new Foundation.Polygon(281,52,289,3,363,27,341,72),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[0,2]
+		    adjacentIndices:[0,2],
+		    terrtype:"Mountain",
+		    port:false,portal:true
 		},
 		{ // 2
 		    title:"2",
 		    polygon:new Foundation.Polygon(341,72,363,27,427,73,391,109),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[1,3]
+		    adjacentIndices:[1,3],
+		    terrtype:"Civilization",
+		    port:false,portal:false
 		},
 		{ // 3
 		    title:"3",
 		    polygon:new Foundation.Polygon(391,109,427,73,473,137,428,159),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[2,4]
+		    adjacentIndices:[2,4],
+		    terrtype:"Forest",
+		    port:false,portal:false
 		},
 		{ // 4
 		    title:"4",
 		    polygon:new Foundation.Polygon(428,159,473,137,497,211,448,219),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[3,5]
+		    adjacentIndices:[3,5],
+		    terrtype:"Plains",
+		    port:true,portal:false
 		},
 		{ // 5
 		    title:"5",
 		    polygon:new Foundation.Polygon(448,219,497,211,497,289,448,281),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[4,6]
+		    adjacentIndices:[4,6],
+		    terrtype:"Forest",
+		    port:false,portal:false
 		},
 		{ // 6
 		    title:"6",
 		    polygon:new Foundation.Polygon(448,281,497,289,473,363,428,341),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[5,7]
+		    adjacentIndices:[5,7],
+		    terrtype:"Civilization",
+		    port:false,portal:false
 		},
 		{ // 7
 		    title:"7",
 		    polygon:new Foundation.Polygon(428,341,473,363,427,427,391,391),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[6,8]
+		    adjacentIndices:[6,8],
+		    terrtype:"Civilization",
+		    port:true,portal:true
 		},
 		{ // 8
 		    title:"8",
 		    polygon:new Foundation.Polygon(391,391,427,427,363,473,341,428),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[7,9]
+		    adjacentIndices:[7,9],
+		    terrtype:"Plains",
+		    port:false,portal:false
 		},
 		{ // 9
 		    title:"9",
 		    polygon:new Foundation.Polygon(341,428,363,473,289,497,281,448),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[8,10]
+		    adjacentIndices:[8,10],
+		    terrtype:"Mountain",
+		    port:false,portal:false
 		},
 		{ // 10
 		    title:"10",
 		    polygon:new Foundation.Polygon(281,448,289,497,211,497,219,448),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[9,11]
+		    adjacentIndices:[9,11],
+		    terrtype:"Civilization",
+		    port:false,portal:false
 		},
 		{ // 11
 		    title:"11",
 		    polygon:new Foundation.Polygon(219,448,211,497,137,473,159,428),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[10,12]
+		    adjacentIndices:[10,12],
+		    terrtype:"Plains",
+		    port:true,portal:false
 		},
 		{ // 12
 		    title:"12",
 		    polygon:new Foundation.Polygon(159,428,137,473,73,427,109,391),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[11,13]
+		    adjacentIndices:[11,13],
+		    terrtype:"Special",
+		    port:false,portal:true
 		},
 		{ // 13
 		    title:"13",
 		    polygon:new Foundation.Polygon(109,391,73,427,27,363,72,341),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[12,14]
+		    adjacentIndices:[12,14],
+		    terrtype:"Forest",
+		    port:false,portal:false
 		},
 		{ // 14
 		    title:"14",
 		    polygon:new Foundation.Polygon(72,341,27,363,3,289,52,281),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[13,15]
+		    adjacentIndices:[13,15],
+		    terrtype:"Civilization",
+		    port:false,portal:false
 		},
 		{ // 15
 		    title:"15",
 		    polygon:new Foundation.Polygon(52,281,3,289,3,211,52,219),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[14,16]
+		    adjacentIndices:[14,16],
+		    terrtype:"Mountain",
+		    port:true,portal:false
 		},
 		{ // 16
 		    title:"16",
 		    polygon:new Foundation.Polygon(52,219,3,211,27,137,72,159),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[15,17]
+		    adjacentIndices:[15,17],
+		    terrtype:"Plains",
+		    port:false,portal:false
 		},
 		{ // 17
 		    title:"17",
 		    polygon:new Foundation.Polygon(72,159,27,137,73,73,109,109),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[16,18]
+		    adjacentIndices:[16,18],
+		    terrtype:"Forest",
+		    port:false,portal:true
 		},
 		{ // 18
 		    title:"18",
 		    polygon:new Foundation.Polygon(109,109,73,73,137,27,159,72),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[17,19]
+		    adjacentIndices:[17,19],
+		    terrtype:"Civilization",
+		    port:false,portal:false
 		},
 		{ // 19
 		    title:"19",
 		    polygon:new Foundation.Polygon(159,72,137,27,211,3,219,52),
-		    //hiliteOffset:new Foundation.Point(440,14), // Not sure about these hilite related items
-		    //hiliteSize:new Foundation.Point(145,233),  
-		    //overlaySize:new Foundation.Point(145,233), // Not sure about overlay
-		    adjacentIndices:[18,0]
+		    adjacentIndices:[18,0],
+		    terrtype:"Plains",
+		    port:false,portal:false
 		},
 	    ],
 	    rules:Foundation.readTextFile("Rules.htm")

@@ -7,6 +7,46 @@
 // have a built-in way to do this? Note: jQuery appears to already
 // handle this in its clone method.
 
+Foundation.appendToClass(
+    GamesByEmail.Territory,
+    {
+	// Virtual instance methods/properties.
+	isPort:
+	/*
+	 * Return true if this is a port, false otherwise.
+	 */
+	/* Boolean */ function()
+	{
+	    return this.port !== undefined && this.port;
+	},
+	isPortal:
+	/*
+	 * Return true if this is a port, false otherwise.
+	 */
+	/* Boolean */ function()
+	{
+	    return this.portal !== undefined && this.portal;
+	},
+    },
+    {
+	// Static methods/properties.
+	findWalkingDistance:
+	/*
+	 * Find the walking distance between the two territories.
+	 */
+	/* Natural or null */ function(/* Territory */ fromTerritory, /* Territory */ toTerritory)
+	{
+	    // TODO: test. It's hard to test against GBE's built-in
+	    // territory type b/c it's hard to create one without a
+	    // Game instance.
+	    var NUM_TERRITORIES_IN_RING = 20;
+	    return Math.min(Math.abs(fromTerritory.index - toTerritory.index),
+			    Math.abs(fromTerritory.index - toTerritory.index - NUM_TERRITORIES_IN_RING),
+			    Math.abs(fromTerritory.index - toTerritory.index + NUM_TERRITORIES_IN_RING));
+	}
+    }
+);
+
 /*
  * Interface tagging implementors as deep-copyable.
  */
@@ -1165,7 +1205,7 @@ Foundation.createClass(
 	    /* Territory */ toTerritory, 
 	    /* Character */ character)
 	{
-	    var distance = GamesByEmail.Data.TransportMode.findWalkingDistance(fromTerritory, toTerritory);
+	    var distance = GamesByEmail.Territory.findWalkingDistance(fromTerritory, toTerritory);
 	    if (distance === null)
 		return null;
 	    
@@ -1188,18 +1228,6 @@ Foundation.createClass(
     },
     {
 	// Static methods
-	findWalkingDistance:
-	/*
-	 * Find the walking distance between the two territories.
-	 */
-	/* Natural or null */ function(/* Territory */ fromTerritory, /* Territory */ toTerritory)
-	{
-	    var NUM_TERRITORIES_IN_RING = 20;
-	    // TODO: move distance finding into the territory class!
-	    return Math.min(Math.abs(fromTerritory.index - toTerritory.index),
-			    Math.abs(fromTerritory.index - toTerritory.index - NUM_TERRITORIES_IN_RING),
-			    Math.abs(fromTerritory.index - toTerritory.index + NUM_TERRITORIES_IN_RING));
-	}
     }
 );
 
@@ -1235,15 +1263,164 @@ Foundation.createClass(
     }
 );
 
+/*
+ * Basic mode of transportation: walking
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.Walking",
+    GamesByEmail.Data.TransportMode,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCostByDist:function(distance, character)
+	{
+	    if (distance == 1)
+		return new GamesByEmail.Data.SimpleCost();
+	    else
+		return null;
+	}
+    },
+    {
+	// Static methods
+    }
+);
+
+/*
+ * Basic mode of transportation: riding a horse
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.HorseRiding",
+    GamesByEmail.Data.TransportMode,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCostByDist:function(distance, character)
+	{
+	    if (distance == 2)
+		return new GamesByEmail.Data.SimpleCost.makeStrict({"Gold": 1});
+	    else
+		return null;
+	}
+    },
+    {
+	// Static methods
+    }
+);
+
+/*
+ * Basic mode of transportation: teleporting through a portal
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.MagicPorting",
+    GamesByEmail.Data.TransportMode,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCostByDist:function(distance, character)
+	{
+	    return null;
+	},
+	findCost:
+	/* Cost */ function(
+	    /* Territory */ fromTerritory, 
+	    /* Territory */ toTerritory, 
+	    /* Character */ character)
+	{
+	    if (fromTerritory.isPortal() &&
+		toTerritory.isPortal())
+		return GamesByEmail.Data.SimpleCost.makeStrict({"Gold":2});
+	    else
+		return null;
+	},
+    },
+    {
+	// Static methods
+    }
+);
+
+/*
+ * Basic mode of transportation: riding a ship
+ */
+Foundation.createClass(
+    "GamesByEmail.Data.Shipping",
+    GamesByEmail.Data.TransportMode,
+    /*
+     * Constructor.
+     */
+    function()
+    {
+	// Nothing to do.
+    },
+    {
+	// Methods
+	findCostByDist:function(distance, character)
+	{
+	    return null;
+	},
+	findCost:
+	/* Cost */ function(
+	    /* Territory */ fromTerritory, 
+	    /* Territory */ toTerritory, 
+	    /* Character */ character)
+	{
+	    if (fromTerritory.isPortal() &&
+		toTerritory.isPortal()) {
+		// Determine whether these are neighboring ports.
+		// If so, then produce a cost of 1G.
+		// If not, then produce null.
+		// TODO!!!
+
+		// TODO: also set up tests. Base on MagicPorting.
+		
+		return GamesByEmail.Data.SimpleCost.makeStrict({"Gold":1});
+	    }
+	    else
+		return null;
+	},
+    },
+    {
+	// Static methods
+    }
+);
+
 describe("TransportModes:", function() {
     var free;
+    var costs1G;
+    var costs2G;
     var resting;
+    var walking;
+    var riding;
+    var shipping;
+    var teleporting;
     var character;
 
     beforeEach(function() {
 	free = new GamesByEmail.Data.SimpleCost();
+	costs1G = GamesByEmail.Data.SimpleCost.makeStrict({"Gold":1});
+	costs2G = GamesByEmail.Data.SimpleCost.makeStrict({"Gold":2});
 	resting = new GamesByEmail.Data.Resting();
-	character = new GamesByEmail.Data.Character();
+	walking = new GamesByEmail.Data.Walking();
+	teleporting = new GamesByEmail.Data.MagicPorting();
+	riding = new GamesByEmail.Data.HorseRiding();
+	character = new GamesByEmail.Data.Character({"Gold":2, "Magic":2});
     });
 
     it("uses findCost as expected to implement canConnect", function() {
@@ -1263,10 +1440,50 @@ describe("TransportModes:", function() {
     describe("GamesByEmail.Data.Resting", function() {
 	it("can find costs by distance", function() {
 	    expect(free.dominates(resting.findCostByDist(0, character), character)).toBe(true);
-	    expect(free.dominates(resting.findCostByDist(0, character), character)).toBe(true);
-	    expect(free.dominates(resting.findCostByDist(0, character), character)).toBe(true);
-	    expect(free.dominates(resting.findCost({index:2}, {index:2}, character), character)).toBe(true);
-	    expect(resting.findCost({index:4}, {index:2}, character)).toBeNull();
+	    expect(resting.findCostByDist(0, character).dominates(free, character)).toBe(true);
+
+	    expect(resting.findCostByDist(1, character)).toBeNull();
+	});
+    });
+
+    describe("GamesByEmail.Data.Walking", function() {
+	it("can find costs by distance", function() {
+	    expect(free.dominates(walking.findCostByDist(1, character), character)).toBe(true);
+	    expect(walking.findCostByDist(1, character).dominates(free, character)).toBe(true);
+
+	    expect(walking.findCostByDist(0, character)).toBeNull();
+	    expect(walking.findCostByDist(2, character)).toBeNull();
+	});
+    });
+
+    describe("GamesByEmail.Data.Riding", function() {
+	it("can find costs by distance", function() {
+	    expect(costs1G.dominates(riding.findCostByDist(2, character), character)).toBe(true);
+	    expect(riding.findCostByDist(2, character).dominates(costs1G, character)).toBe(true);
+
+	    expect(riding.findCostByDist(0, character)).toBeNull();
+	    expect(riding.findCostByDist(1, character)).toBeNull();
+	    expect(riding.findCostByDist(3, character)).toBeNull();
+	});
+    });
+
+    describe("GamesByEmail.Data.MagicPorting", function() {
+	it("cannot find costs by distance", function() {
+	    expect(teleporting.findCostByDist(0, character)).toBeNull();
+	    expect(teleporting.findCostByDist(1, character)).toBeNull();
+	    expect(teleporting.findCostByDist(4, character)).toBeNull();
+	    expect(teleporting.findCostByDist(5, character)).toBeNull();
+	});
+
+	it("can find costs otherwise", function() {
+	    var portalTerr = {isPortal:function() { return true; }};
+	    var nonPortalTerr = {isPortal:function() { return false; }};
+	    expect(costs2G.dominates(teleporting.findCost(portalTerr, portalTerr, character), character)).toBe(true);
+	    expect(teleporting.findCost(portalTerr, portalTerr, character).dominates(costs2G, character)).toBe(true);
+
+	    expect(teleporting.findCost(portalTerr, nonPortalTerr, character)).toBeNull();
+	    expect(teleporting.findCost(nonPortalTerr, nonPortalTerr, character)).toBeNull();
+	    expect(teleporting.findCost(nonPortalTerr, portalTerr, character)).toBeNull();
 	});
     });
 });
