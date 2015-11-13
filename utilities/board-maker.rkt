@@ -6,9 +6,32 @@
 ;; Point is (make-posn Natural Natural)
 ;; interp. an (x, y) coordinate in arb units
 
-(define-struct terr (points type))
-;; Territory is (make-terr (listof Point) Type)
-;; interp. a territory with its polygonal outline and type
+(define-struct terr (points type port? portal?))
+;; Territory is (make-terr (listof Point) Type Boolean Boolean)
+;; interp. a territory with its polygonal outline, type, and whether
+;;         it is a port and has a magic portal. For now, the list of
+;;         points is assumed to be length 4.
+(define TERR-VILLAGE ;0
+  (make-terr (list (make-posn 219 52) (make-posn 211 3) (make-posn 289 3) (make-posn 281 52))
+             "Civilization"
+             true
+             false))
+(define TERR-CITY ;7
+  (make-terr (list (make-posn 428 341) (make-posn 473 363) (make-posn 427 427) (make-posn 391 391))
+             "Civilization"
+             true
+             true))
+(define TERR-MAGIC-WILD ;12
+  (make-terr (list (make-posn 159 428) (make-posn 137 473) (make-posn 73 427) (make-posn 109 391))
+             "Special"
+             false
+             true))
+(define TERR-FOREST-AFTER-MW ;13
+  (make-terr (list (make-posn 109 391) (make-posn 73 427) (make-posn 27 363) (make-posn 72 341))
+             "Forest"
+             false
+             false))
+
 
 ;; Type is one of:
 ;; - "Civilization"
@@ -189,11 +212,55 @@
         "Civilization"    ; Thieves' Guild
         "Plains"))
 
+(define TERRITORY-PORTS
+  (list true     ; Village
+        false
+        false    ; Magic Tower
+        false
+        true
+        false
+        false    ; Monastery
+        true     ; City
+        false
+        false
+        false    ; Fortress
+        true
+        false    ; Magic Wilderness
+        false
+        false    ; Forest Camp
+        true
+        false
+        false
+        false    ; Thieves' Guild
+        false))
+
+(define TERRITORY-PORTALS
+  (list false    ; Village
+        true
+        false    ; Magic Tower
+        false
+        false
+        false
+        false    ; Monastery
+        true     ; City
+        false
+        false
+        false    ; Fortress
+        false
+        true     ; Magic Wilderness
+        false
+        false    ; Forest Camp
+        false
+        false
+        true
+        false    ; Thieves' Guild
+        false))
+
 (define SPACES
   (segments 20 200 50))
 
 (define TERRITORIES
-  (map make-terr SPACES TERRITORY-TYPES))
+  (map make-terr SPACES TERRITORY-TYPES TERRITORY-PORTS TERRITORY-PORTALS))
 
 (define BOARD
   (foldr show-territory
@@ -209,3 +276,44 @@
                        (map (λ (pt) (string-append "(" (number->string (posn-x pt)) "," (number->string (posn-y pt)) ")"))
                             segment)))
               (map terr-points TERRITORIES))))
+
+
+;; Territory -> String
+;; produce resource-pack suitable text for the territory
+(check-expect (territory->resource-str 0 TERR-VILLAGE)
+              "{ // 0\ntitle:\"0\",\npolygon:new Foundation.Polygon(219,52,211,3,289,3,281,52),\nadjacentIndices:[19,1],\nterrtype:\"Civilization\",\nport:true,\nportal:false\n}")
+(check-expect (territory->resource-str 7 TERR-CITY)
+              "{ // 7\ntitle:\"7\",\npolygon:new Foundation.Polygon(428,341,473,363,427,427,391,391),\nadjacentIndices:[6,8],\nterrtype:\"Civilization\",\nport:true,\nportal:true\n}")
+(check-expect (territory->resource-str 12 TERR-MAGIC-WILD)
+              "{ // 12\ntitle:\"12\",\npolygon:new Foundation.Polygon(159,428,137,473,73,427,109,391),\nadjacentIndices:[11,13],\nterrtype:\"Special\",\nport:false,\nportal:true\n}")
+(check-expect (territory->resource-str 13 TERR-FOREST-AFTER-MW)
+              "{ // 13\ntitle:\"13\",\npolygon:new Foundation.Polygon(109,391,73,427,27,363,72,341),\nadjacentIndices:[12,14],\nterrtype:\"Forest\",\nport:false,\nportal:false\n}")
+(define (territory->resource-str index terr)
+  (local [(define TERRITORY-RESOURCE-FMT
+            "{ // ~a\ntitle:\"~a\",\npolygon:new Foundation.Polygon(~a,~a,~a,~a,~a,~a,~a,~a),\nadjacentIndices:[~a,~a],\nterrtype:~s,\nport:~a,\nportal:~a\n}")
+          (define (bool->string b) (if b "true" "false"))]
+    (format TERRITORY-RESOURCE-FMT
+            index
+            index
+            (posn-x (list-ref (terr-points terr) 0))
+            (posn-y (list-ref (terr-points terr) 0))
+            (posn-x (list-ref (terr-points terr) 1))
+            (posn-y (list-ref (terr-points terr) 1))
+            (posn-x (list-ref (terr-points terr) 2))
+            (posn-y (list-ref (terr-points terr) 2))
+            (posn-x (list-ref (terr-points terr) 3))
+            (posn-y (list-ref (terr-points terr) 3))
+            (modulo (sub1 index) (length TERRITORIES))
+            (modulo (add1 index) (length TERRITORIES))
+            (terr-type terr)
+            (if (terr-port? terr) "true" "false")
+            (if (terr-portal? terr) "true" "false"))))
+
+(define TERRITORY-RESOURCES
+  (build-list (length TERRITORIES)
+              (λ(i)
+                (territory->resource-str i (list-ref TERRITORIES i)))))
+
+(define TERRITORY-RESOURCE-STRING
+  (foldr (λ(terr-str rest-terr-str) (string-append terr-str ",\n" rest-terr-str)) ""
+         TERRITORY-RESOURCES))
